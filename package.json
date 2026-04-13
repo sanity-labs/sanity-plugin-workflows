@@ -1,0 +1,111 @@
+{
+  "name": "sanity-plugin-workflows",
+  "version": "1.0.0",
+  "description": "Sanity Studio plugin for opinionated document workflows.",
+  "keywords": [
+    "sanity",
+    "sanity-plugin"
+  ],
+  "homepage": "https://github.com/sanity-io/sanetti-3#readme",
+  "bugs": {
+    "url": "https://github.com/sanity-io/sanetti-3/issues"
+  },
+  "license": "MIT",
+  "author": "Sam Hemingway <sam.hemingway@sanity.io>",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/sanity-io/sanetti-3.git"
+  },
+  "files": [
+    "dist",
+    "sanity.json",
+    "src",
+    "v2-incompatible.js"
+  ],
+  "type": "commonjs",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./audit": {
+      "source": "./src/audit.ts",
+      "default": "./src/audit.ts"
+    },
+    "./actions": {
+      "source": "./src/actions.ts",
+      "default": "./src/actions.ts"
+    },
+    "./schema": {
+      "source": "./src/schema.ts",
+      "default": "./src/schema.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.js"
+      },
+      "./audit": {
+        "import": "./dist/audit.mjs",
+        "default": "./dist/audit.js"
+      },
+      "./actions": {
+        "import": "./dist/actions.mjs",
+        "default": "./dist/actions.js"
+      },
+      "./schema": {
+        "import": "./dist/schema.mjs",
+        "default": "./dist/schema.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "build": "plugin-kit verify-package --silent && pkg-utils build --strict --check --clean",
+    "format": "prettier --write --cache --ignore-unknown .",
+    "link-watch": "plugin-kit link-watch",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsgo --noEmit",
+    "watch": "pkg-utils watch --strict"
+  },
+  "dependencies": {
+    "lucide-react": "^0.577.0",
+    "sanity-workflow-kit": "workspace:*"
+  },
+  "devDependencies": {
+    "@sanity/pkg-utils": "^10.4.13",
+    "@sanity/plugin-kit": "^4.0.20",
+    "@types/react": "^19.2.14",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "sanity": "^5.20.0",
+    "styled-components": "^6.4.0",
+    "typescript": "^6.0.2"
+  },
+  "peerDependencies": {
+    "@sanity/ui": "^3.1.11",
+    "react": "^19",
+    "sanity": ">=5 <6",
+    "styled-components": "^6"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sanityPlugin": {
+    "verifyPackage": {
+      "eslintImports": false,
+      "sanityV2Json": false,
+      "tsc": false
+    }
+  }
+}
