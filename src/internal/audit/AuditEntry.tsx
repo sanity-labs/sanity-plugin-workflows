@@ -1,48 +1,58 @@
-import {Card, Stack, Text} from '@sanity/ui'
+import {Avatar, Card, Flex, Stack, Text, Tooltip} from '@sanity/ui'
 
 import type {WorkflowStatusEntry} from './types'
 
-function formatRelativeDate(dateString: string): string {
+function formatUtcTimestamp(dateString: string): string {
   const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) return 'today'
-  if (diffDays === 1) return 'yesterday'
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) {
-    const weeks = Math.floor(diffDays / 7)
-    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`
-  }
-  if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30)
-    return months === 1 ? '1 month ago' : `${months} months ago`
+  if (Number.isNaN(date.getTime())) {
+    return dateString
   }
 
-  const years = Math.floor(diffDays / 365)
-  return years === 1 ? '1 year ago' : `${years} years ago`
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const hours = String(date.getUTCHours()).padStart(2, '0')
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`
 }
 
-export function AuditEntry({entry}: {entry: WorkflowStatusEntry}) {
-  const userName = entry.completedBy?.displayName ?? entry.completedBy?.userId ?? 'Unknown user'
+export function AuditEntry({
+  entry,
+  resolvedActor,
+  index,
+}: {
+  entry: WorkflowStatusEntry
+  resolvedActor?: {
+    displayName?: string
+    imageUrl?: string
+  }
+  index: number
+}) {
+  const userName =
+    resolvedActor?.displayName ??
+    entry.completedBy?.displayName ??
+    entry.completedBy?.userId ??
+    'Unknown user'
+  const avatarUrl = resolvedActor?.imageUrl ?? entry.completedBy?.imageUrl
+  const statusLabel = entry.statusLabel || entry.statusSlug || 'Unknown stage'
 
   return (
-    <Card padding={3} radius={2} border>
-      <Stack space={2}>
-        <Text weight="semibold">{entry.statusLabel}</Text>
-        <Text muted size={1}>
-          {userName}
-        </Text>
-        <Text muted size={1}>
-          {formatRelativeDate(entry.completedAt)}
-        </Text>
-        {entry.reason ? (
-          <Card padding={2} radius={2} tone="caution">
-            <Text size={1}>{entry.reason}</Text>
-          </Card>
-        ) : null}
-      </Stack>
+    <Card padding={2} radius={2} tone={index === 0 ? 'transparent' : 'default'}>
+      <Flex align="center" gap={3}>
+        <span aria-label={userName} title={userName} style={{display: 'flex', flexShrink: 0}}>
+          <Tooltip content={<Text size={1}>{userName}</Text>} animate delay={300}>
+            <Avatar src={avatarUrl} size={2} style={{borderRadius: '9999px'}} />
+          </Tooltip>
+        </span>
+        <Stack space={2}>
+          <Text size={1} weight="medium">{`Moved to ${statusLabel}`}</Text>
+          <Text muted size={1}>
+            {formatUtcTimestamp(entry.completedAt)}
+          </Text>
+        </Stack>
+      </Flex>
     </Card>
   )
 }

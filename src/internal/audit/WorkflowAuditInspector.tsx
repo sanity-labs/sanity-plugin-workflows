@@ -1,11 +1,15 @@
-import {ClipboardIcon} from '@sanity/icons'
-import {Badge, Box, Card, Flex, Heading, Spinner, Stack, Text} from '@sanity/ui'
+import {Box, Card, Flex, Heading, Spinner, Stack, Text} from '@sanity/ui'
 import {useEffect, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
+import {useWorkflowProjectUsers} from 'sanity-workflow-kit/studio'
 
 import {getWorkflowsApiVersion} from '../plugin/constants'
 import {AuditEntry} from './AuditEntry'
 import type {WorkflowStatusEntry} from './types'
+
+function normalizeAuditLookupValue(value: string): string {
+  return value.trim().toLowerCase()
+}
 
 /** @public */
 export function WorkflowAuditInspector({
@@ -16,6 +20,7 @@ export function WorkflowAuditInspector({
   documentType: string
 }) {
   const client = useClient({apiVersion: getWorkflowsApiVersion()})
+  const {projectUsers} = useWorkflowProjectUsers(client)
   const [statuses, setStatuses] = useState<WorkflowStatusEntry[] | undefined>(undefined)
   const [loading, setLoading] = useState(true)
 
@@ -54,8 +59,31 @@ export function WorkflowAuditInspector({
         : [],
     [statuses],
   )
+  const projectUsersByIdentity = useMemo(() => {
+    const lookup = new Map<
+      string,
+      {
+        displayName?: string
+        imageUrl?: string
+      }
+    >()
 
-  const currentStatus = sortedStatuses[0]
+    projectUsers.forEach((user) => {
+      if (user.sanityUserId?.trim()) {
+        lookup.set(normalizeAuditLookupValue(user.sanityUserId), user)
+      }
+
+      if (user.id?.trim()) {
+        lookup.set(normalizeAuditLookupValue(user.id), user)
+      }
+
+      if (user.email?.trim()) {
+        lookup.set(normalizeAuditLookupValue(user.email), user)
+      }
+    })
+
+    return lookup
+  }, [projectUsers])
 
   return (
     <Stack
@@ -70,18 +98,8 @@ export function WorkflowAuditInspector({
       }}
     >
       <Card padding={4} borderBottom tone="neutral">
-        <Flex align="center" justify="center" direction="column" gap={3}>
-          <Flex align="center" gap={2}>
-            <Heading size={2}>
-              <ClipboardIcon />
-            </Heading>
-            <Heading size={2}>Audit Trail</Heading>
-          </Flex>
-          {currentStatus ? (
-            <Badge tone="primary" fontSize={1} padding={2}>
-              {currentStatus.statusLabel}
-            </Badge>
-          ) : null}
+        <Flex align="center" justify="center">
+          <Heading size={2}>Audit Trail</Heading>
         </Flex>
       </Card>
 
@@ -104,10 +122,24 @@ export function WorkflowAuditInspector({
             </Flex>
           </Card>
         ) : (
-          <Stack space={3}>
-            {sortedStatuses.map((entry) => (
-              <AuditEntry key={entry._key} entry={entry} />
-            ))}
+          <Stack space={1}>
+            {sortedStatuses.map((entry, index) => {
+              const userLookupValue =
+                entry.completedBy?.userId ?? entry.completedBy?.id ?? entry.completedBy?.email
+              const resolvedActor =
+                typeof userLookupValue === 'string' && userLookupValue.trim()
+                  ? projectUsersByIdentity.get(normalizeAuditLookupValue(userLookupValue))
+                  : undefined
+
+              return (
+                <AuditEntry
+                  key={entry._key}
+                  entry={entry}
+                  resolvedActor={resolvedActor}
+                  index={index}
+                />
+              )
+            })}
           </Stack>
         )}
       </Box>
