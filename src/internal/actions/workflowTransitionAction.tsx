@@ -16,9 +16,11 @@ import {
   getCachedWorkflowDefinition,
   performWorkflowTransition,
   resolveAssigneeForTaskTemplate,
+  subscribeWorkflowStageGating,
   userHasWorkflowRoleAccess,
   workflowRoleSlugMatches,
   type WorkflowDefinition,
+  type WorkflowStageGatingResult,
   type WorkflowTransitionDocument,
   type WorkflowTransitionStage,
 } from 'sanity-workflow-kit/engine'
@@ -128,6 +130,7 @@ export function createWorkflowTransitionAction(
     const [pendingStage, setPendingStage] = useState<null | WorkflowTransitionStage>(null)
     const [pendingSourceStageName, setPendingSourceStageName] = useState('')
     const [gatedTasks, setGatedTasks] = useState<WorkflowTransitionTaskRow[]>([])
+    const [gatingStage, setGatingStage] = useState<null | WorkflowTransitionStage>(null)
 
     const docSnapshot = (draft ?? published) as null | WorkflowStatusDocument
     const patchDocumentId = docSnapshot?._id
@@ -232,7 +235,38 @@ export function createWorkflowTransitionAction(
       setPendingStage(null)
       setPendingSourceStageName('')
       setGatedTasks([])
+      setGatingStage(null)
     }, [])
+
+    const openConfirmDialog = useCallback((stage: WorkflowTransitionStage) => {
+      setGatedTasks([])
+      setGatingStage(null)
+      setPendingStage(stage)
+      setModalType('confirm')
+    }, [])
+
+    useEffect(() => {
+      if (modalType !== 'gated' || !gatingStage || !patchDocumentId || !pendingStage) {
+        return
+      }
+
+      return subscribeWorkflowStageGating({
+        client,
+        documentId: patchDocumentId,
+        onError: (error: unknown) => {
+          console.error('[workflowTransitionAction] Failed to refresh gated tasks:', error)
+        },
+        onResult: (result: WorkflowStageGatingResult) => {
+          if (result.blocked) {
+            setGatedTasks(result.tasks)
+            return
+          }
+
+          openConfirmDialog(pendingStage)
+        },
+        stage: gatingStage,
+      })
+    }, [client, gatingStage, modalType, openConfirmDialog, patchDocumentId, pendingStage])
 
     const executeTransition = useCallback(
       async (
@@ -304,6 +338,7 @@ export function createWorkflowTransitionAction(
 
         if (blocked) {
           setGatedTasks(tasks)
+          setGatingStage(currentStage)
           setPendingSourceStageName(currentStage.label || currentStage.slug || 'Current stage')
           setPendingStage(nextStage)
           setModalType('gated')
@@ -352,6 +387,7 @@ export function createWorkflowTransitionAction(
 
     const handleGatedDialogConfirm = useCallback(
       async (overrides: WorkflowTransitionTaskStatusOverride[]) => {
+        setGatingStage(null)
         const mainDataset = client.config().dataset
 
         if (mainDataset) {
