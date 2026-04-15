@@ -11,13 +11,13 @@ npm install sanity-plugin-workflows
 Add it as a plugin in `sanity.config.ts` (or .js):
 
 ```ts
-import {defineConfig} from 'sanity'
-import {workflowsPlugin} from 'sanity-plugin-workflows'
+import { defineConfig } from "sanity";
+import { workflowsPlugin } from "@sanity-labs/sanity-plugin-workflows";
 
 export default defineConfig({
   //...
   plugins: [workflowsPlugin({})],
-})
+});
 ```
 
 ## License
