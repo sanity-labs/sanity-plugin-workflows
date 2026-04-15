@@ -6,15 +6,15 @@
     "sanity",
     "sanity-plugin"
   ],
-  "homepage": "https://github.com/sanity-labs/workflows#readme",
+  "homepage": "https://github.com/sanity-labs/sanity-plugin-workflows#readme",
   "bugs": {
-    "url": "https://github.com/sanity-labs/workflows/issues"
+    "url": "https://github.com/sanity-labs/sanity-plugin-workflows/issues"
   },
   "license": "MIT",
   "author": "Sam Hemingway <sam.hemingway@sanity.io>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sanity-labs/workflows.git"
+    "url": "git+https://github.com/sanity-labs/sanity-plugin-workflows.git"
   },
   "files": [
     "dist",
