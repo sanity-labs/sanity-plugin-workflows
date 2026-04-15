@@ -1,5 +1,5 @@
 {
-  "name": "sanity-plugin-workflows",
+  "name": "@sanity-labs/sanity-plugin-workflows",
   "version": "0.1.0",
   "description": "Sanity Studio plugin for opinionated document workflows.",
   "keywords": [
