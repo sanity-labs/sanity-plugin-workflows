@@ -16,7 +16,7 @@ vi.mock('sanity', () => ({
   })),
 }))
 
-vi.mock('sanity-workflow-kit/studio', () => ({
+vi.mock('sanity-labs/workflow-kit/studio', () => ({
   useWorkflowProjectUsers: (client: unknown) => mockUseWorkflowProjectUsers(client),
 }))
 
