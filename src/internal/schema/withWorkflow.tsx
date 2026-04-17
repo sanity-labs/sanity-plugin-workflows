@@ -27,6 +27,7 @@ export type SchemaDecorator = (types: SchemaTypeDefinition[]) => SchemaTypeDefin
 
 interface WithWorkflowOptions {
   exclude?: string[]
+  injectAssignments?: boolean
 }
 
 type DocumentSchemaType = Extract<SchemaTypeDefinition, {type: 'document'}> & {
@@ -76,6 +77,19 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
           input: StatusPathInput,
         },
       })
+
+      const hasAssignments = existingFields.some((field) => field.name === 'assignments')
+      const shouldInjectAssignments = options.injectAssignments !== false && !hasAssignments
+
+      const assignmentsField = shouldInjectAssignments
+        ? defineField({
+            name: 'assignments',
+            title: 'Assignments',
+            type: 'array',
+            of: [defineArrayMember({type: 'assignment'})],
+            ...(defaultGroup ? {group: defaultGroup} : {}),
+          })
+        : null
 
       const statusesField = defineField({
         name: 'statuses',
@@ -144,7 +158,13 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
         ...documentType,
         groups: [...existingGroups],
         validation: composedValidation,
-        fields: [statusField, ...existingFields, statusesField, pendingReasonField],
+        fields: [
+          statusField,
+          ...(assignmentsField ? [assignmentsField] : []),
+          ...existingFields,
+          statusesField,
+          pendingReasonField,
+        ],
       } as SchemaTypeDefinition
     })
 }

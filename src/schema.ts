@@ -1,7 +1,7 @@
 export {withWorkflow, type SchemaDecorator} from './internal/schema/withWorkflow'
 export {workflowDefinitionType} from './internal/schema/documents/workflowDefinitionType'
 export {workflowsConfigType} from './internal/schema/documents/workflowsConfigType'
-export {generateAssignmentObject} from './internal/schema/objects/generators/assignmentObject'
+export {assignmentObject} from './internal/schema/objects/assignmentObject'
 export {
   generateStatusType,
   reusableStatusTrackerField,

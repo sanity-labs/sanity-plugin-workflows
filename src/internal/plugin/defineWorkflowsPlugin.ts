@@ -4,7 +4,7 @@ import {workflowAuditTrailActionResolver} from '../actions/workflowAuditTrailAct
 import {createWorkflowAuditInspector} from '../audit/createWorkflowAuditInspector'
 import {workflowDefinitionType} from '../schema/documents/workflowDefinitionType'
 import {workflowsConfigType} from '../schema/documents/workflowsConfigType'
-import {generateAssignmentObject} from '../schema/objects/generators/assignmentObject'
+import {assignmentObject} from '../schema/objects/assignmentObject'
 import {generateTableViewColumnType} from '../schema/objects/generators/tableViewColumnType'
 import {generateTableViewType} from '../schema/objects/generators/tableViewType'
 import {setStatusObject} from '../schema/objects/setStatusObject'
@@ -19,6 +19,7 @@ import {configureWorkflowsApiVersion} from './constants'
 export interface WorkflowsPluginOptions {
   actions?: boolean
   apiVersion?: string
+  injectAssignments?: boolean
   inspector?: boolean
   schemaTypes?: SchemaTypeDefinition[]
 }
@@ -32,7 +33,7 @@ function getDefaultWorkflowSchemaTypes(): SchemaTypeDefinition[] {
     generateWorkflowOffRampObject({}),
     generateTableViewColumnType({tableColumns: []}),
     generateTableViewType({contentTypeOptions: []}),
-    generateAssignmentObject({assignmentTypeOptions: []}),
+    assignmentObject,
     workflowDefinitionType,
     workflowsConfigType,
   ]
@@ -41,6 +42,7 @@ function getDefaultWorkflowSchemaTypes(): SchemaTypeDefinition[] {
 function mergeWorkflowSchemaTypes(
   prev: SchemaTypeDefinition[],
   overrides: SchemaTypeDefinition[] = [],
+  options: {injectAssignments?: boolean} = {},
 ): SchemaTypeDefinition[] {
   const byName = new Map<string, SchemaTypeDefinition>()
 
@@ -48,20 +50,24 @@ function mergeWorkflowSchemaTypes(
     byName.set(schemaType.name, schemaType)
   }
 
-  return withWorkflow()(Array.from(byName.values()))
+  return withWorkflow({injectAssignments: options.injectAssignments})(Array.from(byName.values()))
 }
 
 /** @public */
-export const workflowsPlugin = definePlugin<WorkflowsPluginOptions>((config = {}) => {
-  configureWorkflowsApiVersion(config.apiVersion)
+export const workflowsPlugin = definePlugin<void | WorkflowsPluginOptions>((config) => {
+  const resolvedConfig: WorkflowsPluginOptions = config ?? {}
+  configureWorkflowsApiVersion(resolvedConfig.apiVersion)
 
-  const actionsEnabled = config.actions !== false
-  const inspectorEnabled = config.inspector !== false
+  const actionsEnabled = resolvedConfig.actions !== false
+  const inspectorEnabled = resolvedConfig.inspector !== false
 
   return {
     name: 'sanity-plugin-workflows',
     schema: {
-      types: (prev) => mergeWorkflowSchemaTypes(prev, config.schemaTypes),
+      types: (prev) =>
+        mergeWorkflowSchemaTypes(prev, resolvedConfig.schemaTypes, {
+          injectAssignments: resolvedConfig.injectAssignments,
+        }),
     },
     ...(actionsEnabled || inspectorEnabled
       ? {

@@ -21,7 +21,7 @@ import {
   type WorkflowTransitionTaskStatusOverride,
   type WorkflowTransitionTaskTemplatePreview,
 } from '@sanity-labs/workflow-kit/react'
-import {useWorkflowProjectUsers} from '@sanity-labs/workflow-kit/studio'
+import {buildTaskViewPath, useWorkflowProjectUsers} from '@sanity-labs/workflow-kit/studio'
 import {ArrowRightIcon} from '@sanity/icons'
 import {useToast} from '@sanity/ui'
 import * as LucideIcons from 'lucide-react'
@@ -33,6 +33,7 @@ import {
   useCurrentUser,
   useSchema,
 } from 'sanity'
+import {useRouter} from 'sanity/router'
 
 import {getWorkflowsApiVersion} from '../plugin/constants'
 
@@ -118,6 +119,7 @@ export function createWorkflowTransitionAction(
     const {draft, onComplete, published, ready, transactionSyncLock} = props
     const client = useClient({apiVersion: getWorkflowsApiVersion()})
     const currentUser = useCurrentUser()
+    const router = useRouter()
     const toast = useToast()
     const {aclData, projectUsers} = useWorkflowProjectUsers(client)
     const originalResult = originalPublishAction(props)
@@ -420,6 +422,10 @@ export function createWorkflowTransitionAction(
                 isSubmitting={isTransitioning}
                 onCancel={closeDialog}
                 onConfirm={handleGatedDialogConfirm}
+                onViewTask={(taskId) => {
+                  const path = buildTaskViewPath(taskId)
+                  if (path) router.navigateUrl({path})
+                }}
                 sourceStageName={pendingSourceStageName}
                 targetStageTitle={pendingStage.label || pendingStage.slug || 'Next stage'}
                 tasks={gatedTasks}
