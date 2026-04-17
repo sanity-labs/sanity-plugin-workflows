@@ -83,12 +83,7 @@ Decorator that maps over a list of schema types and, for every `type: 'document'
 
 The decorator skips the whole injection on any document that already declares a `status` or `statuses` field. This is the documented escape hatch for domain lifecycles (see `reusableStatusTrackerField` below). The `assignments` check is separate and only suppresses the `assignments` field specifically — a document that declares its own `assignments` still gets the other injected fields.
 
-Default exclude list (always applied, plus anything you pass in `exclude`):
-
-```
-globalPopupModal, globalSeo, locale, footer, navbar,
-tableView, tableViewColumn, workflowDefinition, workflowsConfig
-```
+Default exclude list (always applied, plus anything you pass in `exclude`): `workflowDefinition`, `workflowsConfig`.
 
 #### `SchemaDecorator`
 

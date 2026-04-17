@@ -11,13 +11,6 @@ import {WorkflowStatusFieldWrapper} from '../components/fields/SetStatus/Workflo
 import {getWorkflowsApiVersion} from '../plugin/constants'
 
 const DEFAULT_EXCLUDE = [
-  'globalPopupModal',
-  'globalSeo',
-  'locale',
-  'footer',
-  'navbar',
-  'tableView',
-  'tableViewColumn',
   'workflowDefinition',
   'workflowsConfig',
 ]
