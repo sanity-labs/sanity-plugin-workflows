@@ -10,17 +10,7 @@ import {
 import {WorkflowStatusFieldWrapper} from '../components/fields/SetStatus/WorkflowStatusFieldWrapper'
 import {getWorkflowsApiVersion} from '../plugin/constants'
 
-const DEFAULT_EXCLUDE = [
-  'globalPopupModal',
-  'globalSeo',
-  'locale',
-  'footer',
-  'navbar',
-  'tableView',
-  'tableViewColumn',
-  'workflowDefinition',
-  'workflowsConfig',
-]
+const DEFAULT_EXCLUDE = ['workflowDefinition', 'workflowsConfig']
 
 /** @public */
 export type SchemaDecorator = (types: SchemaTypeDefinition[]) => SchemaTypeDefinition[]

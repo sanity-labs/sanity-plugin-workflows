@@ -23,16 +23,16 @@ Where the plan does matter is **role-access**. The plugin's gating overrides, of
 
 ## Concepts
 
-| Term                 | What it is                                                                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `workflowDefinition` | A Studio document that describes _one_ workflow. Targets a single `documentType` and owns that type's stages, off-ramps, and roles.           |
-| Stage                | A step on the happy path (e.g. `draft` → `in_review` → `approved`). Each stage has a label, icon, color, and optional tasks and gating rules. |
-| Off-ramp             | A terminal/abandoned state that isn't part of the forward path (e.g. `spiked`, `archived`). Can unpublish the document on entry.              |
+| Term                 | What it is                                                                                                                                                                                                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflowDefinition` | A Studio document that describes _one_ workflow. Targets a single `documentType` and owns that type's stages, off-ramps, and roles.                                                                                                                                                          |
+| Stage                | A step on the happy path (e.g. `draft` → `in_review` → `approved`). Each stage has a label, icon, color, and optional tasks and gating rules.                                                                                                                                                |
+| Off-ramp             | A terminal/abandoned state that isn't part of the forward path (e.g. `spiked`, `archived`). Can unpublish the document on entry.                                                                                                                                                             |
 | Role                 | A workflow role (e.g. Reporter, Section Editor) authored inside the `workflowDefinition` document. Each role maps to one or more Sanity project roles via `workflowRole.projectRoles[]`; the plugin uses that mapping to resolve which Sanity users count as which workflow role at runtime. |
-| Task template        | A task that's auto-created on stage entry, with an assignee role and due date. Tasks live in the `-comments` addon dataset.                   |
-| Completion gating    | If on, a stage can't be left until its required tasks are closed. Roles listed in `gatingOverrideRoles` can override.                         |
-| Publish gating       | Documents can only be published when the current stage has `enablePublishing: true`. Enforced by a custom validator.                          |
-| Audit trail          | Every transition appends a `setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                        |
+| Task template        | A task that's auto-created on stage entry, with an assignee role and due date. Tasks live in the `-comments` addon dataset.                                                                                                                                                                  |
+| Completion gating    | If on, a stage can't be left until its required tasks are closed. Roles listed in `gatingOverrideRoles` can override.                                                                                                                                                                        |
+| Publish gating       | Documents can only be published when the current stage has `enablePublishing: true`. Enforced by a custom validator.                                                                                                                                                                         |
+| Audit trail          | Every transition appends a `setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                                                                                                                                                                       |
 
 ### How the pieces fit
 
@@ -84,7 +84,7 @@ export default defineConfig({
 With zero options, the plugin:
 
 - Registers the workflow schema types (`workflowDefinition`, stages, off-ramps, roles, task templates, assignments).
-- Applies the `withWorkflow()` decorator to all document types except a small default exclude list, injecting `status`, an `assignments` array, `statuses` (audit trail), and `pendingTransitionReason` fields plus a publish-gating validator.
+- Applies the `withWorkflow()` decorator to all document types except the plugin's own config documents (`workflowDefinition` and `workflowsConfig`), injecting `status`, an `assignments` array, `statuses` (audit trail), and `pendingTransitionReason` fields plus a publish-gating validator.
 - Registers the audit-trail publish action wrapper and the **Audit Trail** inspector.
 
 ### 3. Author a workflowDefinition in Studio
@@ -138,28 +138,31 @@ _Customize_ — if you need additional fields on assignments (e.g. a channel or 
 
 Copy the shape from the plugin's own `assignmentObject` export (exported from `@sanity-labs/sanity-plugin-workflows/schema`) as a starting point.
 
-### Exclude document types from status injection
+### Exclude document types
 
-Some document types shouldn't have workflow state — singletons, config documents, embedded blocks surfaced as documents, etc. By default the plugin already excludes:
-
-```
-globalPopupModal, globalSeo, locale, footer, navbar,
-tableView, tableViewColumn, workflowDefinition, workflowsConfig
-```
+You might want to ensure that editors cannot add workflows to specific document types — singletons, config documents, embedded blocks surfaced as documents, etc. By default the plugin only excludes its own config documents: `workflowDefinition` and `workflowsConfig`.
 
 To add your own, disable the plugin's built-in decorator and run `withWorkflow` yourself with your exclude list:
 
 ```ts
 // sanity.config.ts
+import { defineConfig, type SchemaTypeDefinition } from "sanity";
 import { workflowsPlugin } from "@sanity-labs/sanity-plugin-workflows";
-import { withWorkflow } from "@sanity-labs/sanity-plugin-workflows/schema";
-import { decorateSchemaTypes } from "@sanetti/shared/studio/schemaTypes"; // your own utility
+import {
+  withWorkflow,
+  type SchemaDecorator,
+} from "@sanity-labs/sanity-plugin-workflows/schema";
+
+const applySchemaDecorators = (
+  types: SchemaTypeDefinition[],
+  decorators: SchemaDecorator[],
+) => decorators.reduce((acc, decorate) => decorate(acc), types);
 
 export default defineConfig({
   // ...
   schema: {
     types: (prev) =>
-      decorateSchemaTypes(prev, [
+      applySchemaDecorators(prev, [
         withWorkflow({ exclude: ["siteSettings", "homepage"] }),
       ]),
   },
@@ -370,7 +373,7 @@ If you're adding workflows to a Studio for the first time, this plugin is the ba
 
 **No "Move to _next stage_" action appears on a document.**
 
-- The document type is in the default exclude list. Default-excluded types: `globalPopupModal`, `globalSeo`, `locale`, `footer`, `navbar`, `tableView`, `tableViewColumn`, `workflowDefinition`, `workflowsConfig`.
+- The document type is one of the plugin's default exclusions: `workflowDefinition` or `workflowsConfig`.
 - No published `workflowDefinition` exists where `documentType == "<yourType>"`. The decorator checks for the definition at validate time; the action only renders when `findNextWorkflowStage` returns a stage after the current `status`.
 - The document's `status` is the last stage on the happy path. There's no next stage to move to — the original `Publish` action is shown instead.
 - Publish action itself was suppressed earlier in the action chain. The transition wrapper only wraps actions whose `action === 'publish'`.
