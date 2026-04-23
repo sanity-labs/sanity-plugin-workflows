@@ -1,4 +1,5 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react'
+import type {StringInputProps} from 'sanity'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 import {renderWithProviders} from '../../__tests__/testProviders'
@@ -19,6 +20,15 @@ vi.mock('@sanity-labs/workflow-kit/engine', () => ({
   getCachedWorkflowDefinition: (...args: unknown[]) => mockGetCachedWorkflowDefinition(...args),
 }))
 
+const renderDefaultSpy = vi.fn()
+
+const renderDefault: StringInputProps['renderDefault'] = (renderProps) => {
+  renderDefaultSpy(renderProps)
+  return (
+    <div data-testid="default-input">Default input: {String(renderProps.value ?? 'unset')}</div>
+  )
+}
+
 function renderInput() {
   const schemaType = {
     name: 'assignmentType',
@@ -30,6 +40,7 @@ function renderInput() {
       // @ts-expect-error — partial StringInputProps is enough for the component's use of schemaType, onChange, value
       schemaType={schemaType}
       onChange={mockOnChange}
+      renderDefault={renderDefault}
       value={undefined}
     />,
   )
@@ -38,7 +49,7 @@ function renderInput() {
 beforeEach(() => {
   vi.clearAllMocks()
   mockUseFormValue.mockImplementation((path) => {
-    if (Array.isArray(path) && path[0] === '_type') return 'article'
+    if (Array.isArray(path) && path.length === 0) return {_type: 'article'}
     return undefined
   })
 })
@@ -60,13 +71,13 @@ describe('WorkflowAssignmentTypeInput', () => {
     })
   })
 
-  it('renders the empty-state hint when the fetched definition has no roles', async () => {
+  it('falls back to the default input when the fetched definition has no roles', async () => {
     mockGetCachedWorkflowDefinition.mockResolvedValue(null)
 
     renderInput()
 
     await waitFor(() => {
-      expect(screen.getByText('Add roles to this workflow definition first.')).toBeDefined()
+      expect(screen.getByTestId('default-input').textContent).toBe('Default input: unset')
     })
   })
 
@@ -81,7 +92,7 @@ describe('WorkflowAssignmentTypeInput', () => {
     renderInput()
 
     expect(screen.queryByRole('combobox')).toBeNull()
-    expect(screen.queryByText('Add roles to this workflow definition first.')).toBeNull()
+    expect(screen.queryByTestId('default-input')).toBeNull()
 
     resolveFetch({roles: [{label: 'Reporter', slug: 'reporter'}]})
 
@@ -101,5 +112,14 @@ describe('WorkflowAssignmentTypeInput', () => {
     fireEvent.change(select, {target: {value: 'reporter'}})
 
     expect(mockOnChange).toHaveBeenCalledWith({type: 'set', value: 'reporter'})
+  })
+
+  it('falls back to the default input when the root document type is unavailable', async () => {
+    mockUseFormValue.mockReturnValue(undefined)
+
+    renderInput()
+
+    expect(screen.getByTestId('default-input').textContent).toBe('Default input: unset')
+    expect(mockGetCachedWorkflowDefinition).not.toHaveBeenCalled()
   })
 })
