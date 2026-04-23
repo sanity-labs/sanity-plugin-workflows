@@ -1,4 +1,5 @@
 import {screen} from '@testing-library/react'
+import type {ComponentProps} from 'react'
 import {isValidElement} from 'react'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 
@@ -34,7 +35,7 @@ function renderPreview(
     ),
     userId: 'project-user-1',
     ...props,
-  } as any
+  } as unknown as ComponentProps<typeof WorkflowAssignmentPreview>
 
   return renderWithProviders(<WorkflowAssignmentPreview {...previewProps} />)
 }

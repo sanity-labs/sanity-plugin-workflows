@@ -1,5 +1,6 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
+import type {StringInputProps} from 'sanity'
 
 import {renderWithProviders} from '../../__tests__/testProviders'
 import {WorkflowAssignmentTypeInput} from './WorkflowAssignmentTypeInput'
@@ -19,9 +20,12 @@ vi.mock('@sanity-labs/workflow-kit/engine', () => ({
   getCachedWorkflowDefinition: (...args: unknown[]) => mockGetCachedWorkflowDefinition(...args),
 }))
 
-const renderDefault = vi.fn((renderProps: {value?: unknown}) => (
-  <div data-testid="default-input">Default input: {String(renderProps.value ?? 'unset')}</div>
-)) as any
+const renderDefaultSpy = vi.fn()
+
+const renderDefault: StringInputProps['renderDefault'] = (renderProps) => {
+  renderDefaultSpy(renderProps)
+  return <div data-testid="default-input">Default input: {String(renderProps.value ?? 'unset')}</div>
+}
 
 function renderInput() {
   const schemaType = {
