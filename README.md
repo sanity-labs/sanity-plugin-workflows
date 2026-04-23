@@ -11,13 +11,7 @@ The simplest working setup is one line of config (`plugins: [workflowsPlugin()]`
 - **Full API reference** → [docs/reference.md](docs/reference.md)
 - **Engine + UI primitives the plugin is built on** → [`@sanity-labs/workflow-kit`](https://github.com/sanity-labs/workflow-kit)
 
----
-
-## Prerequisites
-
-The plugin works on any Sanity plan. The core workflow — status field, stages, transitions, audit trail, completion gating, publish gating — is authored in Studio as data and needs no specific plan.
-
-Where the plan does matter is **role-access**. The plugin's gating overrides, off-ramp permissions, and assignee-eligibility checks all map each workflow role to one or more Sanity project roles. Free and Team plans give you the three built-in project roles (`administrator`, `editor`, `viewer`); Enterprise plans add custom project roles, which unlock real separation of duties. The plugin is at its most expressive on Enterprise, but nothing about it requires Enterprise.
+> The plugin works on every Sanity plan, but role-based workflow behavior depends on which project roles your plan supports. See [How the plugin works across Sanity plans](#how-the-plugin-works-across-sanity-plans) before you design approvals, gating overrides, or separation of duties.
 
 ---
 
@@ -115,6 +109,22 @@ Click **Move to _next stage_**. If the stage has task templates or stage guidanc
 ![Studio: task creation upon moving to the next stage](https://raw.githubusercontent.com/sanity-labs/sanity-plugin-workflows/main/docs/media/workflows-plugin-task-creation-screenshot.avif)
 
 That's a complete workflow. Everything below is optional customization.
+
+---
+
+## How the plugin works across Sanity plans
+
+The core workflow works on every Sanity plan. Plan differences only show up when you map workflow roles to Sanity project roles. That mapping drives gating overrides, off-ramp access, and assignee eligibility.
+
+| Plan       | Available project roles                                         | What that means for workflow roles                                                                                                                   | Main limitation or advantage                                                                       |
+| ---------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Free       | `administrator`, `viewer`                                       | You can still map workflow roles, but anyone who needs to edit or move documents will usually map to `administrator`, because `viewer` is read-only. | Best for basic admin-versus-viewer workflows; separation of duties is limited.                     |
+| Growth     | `administrator`, `editor`, `viewer`, `developer`, `contributor` | More built-in roles give you more realistic editorial handoffs without changing how the plugin works.                                                | Good for lightweight separation of duties, but you are still limited to Sanity's predefined roles. |
+| Enterprise | Everything in Growth plus custom roles                          | You can map workflow roles to custom project roles that match your real team structure.                                                              | Most expressive option for strict approvals, off-ramp permissions, and assignee rules.             |
+
+Nothing about the plugin requires Enterprise. Enterprise simply gives role mapping more room to model real-world teams.
+
+For the schema-level details behind this mapping, see [`workflowRole.projectRoles[]`](docs/reference.md#workflowroleobject) in the [full API reference](docs/reference.md).
 
 ---
 
