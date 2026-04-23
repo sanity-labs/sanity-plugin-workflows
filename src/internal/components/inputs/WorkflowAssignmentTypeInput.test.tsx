@@ -1,6 +1,6 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react'
-import {beforeEach, describe, expect, it, vi} from 'vitest'
 import type {StringInputProps} from 'sanity'
+import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 import {renderWithProviders} from '../../__tests__/testProviders'
 import {WorkflowAssignmentTypeInput} from './WorkflowAssignmentTypeInput'
@@ -24,7 +24,9 @@ const renderDefaultSpy = vi.fn()
 
 const renderDefault: StringInputProps['renderDefault'] = (renderProps) => {
   renderDefaultSpy(renderProps)
-  return <div data-testid="default-input">Default input: {String(renderProps.value ?? 'unset')}</div>
+  return (
+    <div data-testid="default-input">Default input: {String(renderProps.value ?? 'unset')}</div>
+  )
 }
 
 function renderInput() {
