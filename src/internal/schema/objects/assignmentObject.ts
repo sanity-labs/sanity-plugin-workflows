@@ -2,6 +2,7 @@ import {UserRound} from 'lucide-react'
 import {defineField, defineType} from 'sanity'
 
 import {WorkflowAssignmentTypeInput} from '../../components/inputs/WorkflowAssignmentTypeInput'
+import {WorkflowAssignmentPreview} from '../../components/previews/WorkflowAssignmentPreview'
 
 /** @public */
 export const assignmentObject = defineType({
@@ -9,12 +10,10 @@ export const assignmentObject = defineType({
   title: 'Assignment',
   type: 'object',
   icon: UserRound,
+  components: {
+    preview: WorkflowAssignmentPreview,
+  },
   preview: {
-    prepare({assignmentType, userId}) {
-      return {
-        title: `${assignmentType || 'Assignment'}: ${userId || 'Unassigned'}`,
-      }
-    },
     select: {
       assignmentType: 'assignmentType',
       userId: 'userId',

@@ -2,7 +2,7 @@ import {
   getCachedWorkflowDefinition,
   type WorkflowTransitionRole,
 } from '@sanity-labs/workflow-kit/engine'
-import {Select, Skeleton, Stack, Text} from '@sanity/ui'
+import {Select, Skeleton, Stack} from '@sanity/ui'
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import type {StringInputProps} from 'sanity'
 import {set, unset, useClient, useFormValue} from 'sanity'
@@ -11,7 +11,8 @@ import {getWorkflowsApiVersion} from '../../plugin/constants'
 
 export function WorkflowAssignmentTypeInput(props: StringInputProps) {
   const {onChange, readOnly, value} = props
-  const documentType = useFormValue(['_type']) as string | undefined
+  const documentValue = useFormValue([]) as {_type?: string} | undefined
+  const documentType = documentValue?._type
   const client = useClient({apiVersion: getWorkflowsApiVersion()})
   const [workflowRoles, setWorkflowRoles] = useState<null | WorkflowTransitionRole[]>(null)
   const [loaded, setLoaded] = useState(false)
@@ -68,13 +69,7 @@ export function WorkflowAssignmentTypeInput(props: StringInputProps) {
   }
 
   if (options.length === 0) {
-    return (
-      <Stack space={2}>
-        <Text size={1} muted>
-          Add roles to this workflow definition first.
-        </Text>
-      </Stack>
-    )
+    return props.renderDefault(props)
   }
 
   return (
