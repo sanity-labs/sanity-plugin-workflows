@@ -1,5 +1,5 @@
-import {isValidElement} from 'react'
 import {screen} from '@testing-library/react'
+import {isValidElement} from 'react'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 import {renderWithProviders} from '../../__tests__/testProviders'
@@ -36,9 +36,7 @@ function renderPreview(
     ...props,
   } as any
 
-  return renderWithProviders(
-    <WorkflowAssignmentPreview {...previewProps} />,
-  )
+  return renderWithProviders(<WorkflowAssignmentPreview {...previewProps} />)
 }
 
 beforeEach(() => {

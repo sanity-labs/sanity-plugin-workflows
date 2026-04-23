@@ -18,12 +18,11 @@ function capitalize(value: string): string {
 function formatAssignmentLabel(assignmentType?: string): string {
   if (!assignmentType?.trim()) return 'Assignment'
 
-  const cleaned = assignmentType.trim().replace(/^ed[-_]/i, '').replace(/[-_]+/g, ' ')
-  return cleaned
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(capitalize)
-    .join(' ')
+  const cleaned = assignmentType
+    .trim()
+    .replace(/^ed[-_]/i, '')
+    .replace(/[-_]+/g, ' ')
+  return cleaned.split(/\s+/).filter(Boolean).map(capitalize).join(' ')
 }
 
 function getInitials(value: string): string {
@@ -78,16 +77,16 @@ export function WorkflowAssignmentPreview(props: WorkflowAssignmentPreviewProps)
   const title = resolvedTitle || `${assignmentLabel}: ${userId || 'Unassigned'}`
   const subtitle = resolvedTitle ? assignmentLabel : undefined
   const media =
-    resolvedTitle || resolvedUser?.imageUrl
-      ? (
-          <Avatar
-            initials={getInitials(resolvedTitle || userId || assignmentLabel)}
-            size={1}
-            src={resolvedUser?.imageUrl}
-            title={resolvedTitle || assignmentLabel}
-          />
-        )
-      : props.media
+    resolvedTitle || resolvedUser?.imageUrl ? (
+      <Avatar
+        initials={getInitials(resolvedTitle || userId || assignmentLabel)}
+        size={1}
+        src={resolvedUser?.imageUrl}
+        title={resolvedTitle || assignmentLabel}
+      />
+    ) : (
+      props.media
+    )
 
   return props.renderDefault({
     ...props,
