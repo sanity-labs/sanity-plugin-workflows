@@ -36,7 +36,7 @@ Factory returned from `definePlugin<WorkflowsPluginOptions>`. Register it in `pl
 Behavior:
 
 1. Calls `configureWorkflowsApiVersion(options.apiVersion)`.
-2. Merges your `schemaTypes` over the built-in defaults and runs `withWorkflow()` on the whole schema list.
+2. Merges your `schemaTypes` over the built-in defaults and runs `withWorkflow()` on the whole schema list. Defaults include support types `user` and `lucide-icon`; define types with the same names to replace them.
 3. If `actions` is enabled, registers `workflowAuditTrailActionResolver` as `document.actions`.
 4. If `inspector` is enabled, prepends `createWorkflowAuditInspector()` to `document.inspectors`.
 
@@ -49,7 +49,9 @@ import {
   withWorkflow,
   workflowDefinitionType,
   workflowsConfigType,
+  lucideIconType,
   setStatusObject,
+  userObject,
   workflowRoleObject,
   assignmentObject,
   generateWorkflowStageObject,
@@ -121,6 +123,22 @@ const workflowsConfigType: SchemaTypeDefinition
 `document`, name `workflowsConfig`. Icon: `lucide-react/Settings2`. One field:
 
 - `tableViews` - `array of tableView`.
+
+### `userObject`
+
+```ts
+const userObject: SchemaTypeDefinition
+```
+
+`object`, name `user`. Default support type for `setStatus.completedBy`. Fields: `userId` (`string`, required). Override this type if your Studio has a richer project-member picker, for example a `userId` field using `sanity-plugin-user-select-input`.
+
+### `lucideIconType`
+
+```ts
+const lucideIconType: SchemaTypeDefinition
+```
+
+`string`, name `lucide-icon`. Default support type for workflow stage and off-ramp icon fields. Values are stored as Lucide icon names in kebab-case, e.g. `check-circle-2`. Override this type if your Studio uses a richer Lucide icon picker.
 
 ### `setStatusObject`
 

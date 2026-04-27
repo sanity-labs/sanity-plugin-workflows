@@ -77,7 +77,7 @@ export default defineConfig({
 
 With zero options, the plugin:
 
-- Registers the workflow schema types (`workflowDefinition`, stages, off-ramps, roles, task templates, assignments).
+- Registers the workflow schema types (`workflowDefinition`, stages, off-ramps, roles, task templates, assignments) plus support types (`user`, `lucide-icon`) required by the audit trail and workflow icons.
 - Applies the `withWorkflow()` decorator to all document types except the plugin's own config documents (`workflowDefinition` and `workflowsConfig`), injecting `status`, an `assignments` array, `statuses` (audit trail), and `pendingTransitionReason` fields plus a publish-gating validator.
 - Registers the audit-trail publish action wrapper and the **Audit Trail** inspector.
 
@@ -147,6 +147,15 @@ Or declare your own `assignments` field on the document type, and the decorator 
 _Customize_ — if you need additional fields on assignments (e.g. a channel or market categorization), define your own schema type with `name: 'assignment'` and register it via `workflowsPlugin({schemaTypes: [yourAssignment]})`. The plugin merges schema types by name, so yours replaces the default.
 
 Copy the shape from the plugin's own `assignmentObject` export (exported from `@sanity-labs/sanity-plugin-workflows/schema`) as a starting point.
+
+### Customize support schema types
+
+The plugin registers small default support types so a clean Studio works with only `workflowsPlugin()`:
+
+- `user` - an object with `userId: string`, used by `setStatus.completedBy` audit entries.
+- `lucide-icon` - a string for storing Lucide icon names such as `check-circle-2`.
+
+If your Studio already has richer versions of these types, register them through `workflowsPlugin({schemaTypes: [...]})` or your normal schema list. Schema types are merged by `name`, so your `user` or `lucide-icon` definition replaces the default. For example, you can provide a `user` object whose `userId` field uses `sanity-plugin-user-select-input`; just make sure that plugin is also registered in `sanity.config.ts`.
 
 ### Exclude document types
 
