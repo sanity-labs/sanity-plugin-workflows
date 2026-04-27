@@ -7,8 +7,10 @@ import {workflowsConfigType} from '../schema/documents/workflowsConfigType'
 import {assignmentObject} from '../schema/objects/assignmentObject'
 import {generateTableViewColumnType} from '../schema/objects/generators/tableViewColumnType'
 import {generateTableViewType} from '../schema/objects/generators/tableViewType'
+import {lucideIconType} from '../schema/objects/lucideIconType'
 import {setStatusObject} from '../schema/objects/setStatusObject'
 import {generateTaskTemplateObject} from '../schema/objects/taskTemplateObject'
+import {userObject} from '../schema/objects/userObject'
 import {generateWorkflowOffRampObject} from '../schema/objects/workflowOffRampObject'
 import {workflowRoleObject} from '../schema/objects/workflowRoleObject'
 import {generateWorkflowStageObject} from '../schema/objects/workflowStageObject'
@@ -26,6 +28,8 @@ export interface WorkflowsPluginOptions {
 
 function getDefaultWorkflowSchemaTypes(): SchemaTypeDefinition[] {
   return [
+    userObject,
+    lucideIconType,
     setStatusObject,
     workflowRoleObject,
     generateTaskTemplateObject({}),
