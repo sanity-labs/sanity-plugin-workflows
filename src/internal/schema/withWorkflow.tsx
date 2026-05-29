@@ -2,11 +2,13 @@ import {StatusPathInput, type StatusPathOptions} from '@sanity-labs/workflow-kit
 import {
   defineArrayMember,
   defineField,
+  type InitialValueResolverContext,
   type Rule,
   type SchemaTypeDefinition,
   type ValidationContext,
 } from 'sanity'
 
+import {WorkflowAssignmentsFieldWrapper} from '../components/fields/Assignments/WorkflowAssignmentsFieldWrapper'
 import {WorkflowStatusFieldWrapper} from '../components/fields/SetStatus/WorkflowStatusFieldWrapper'
 import {getWorkflowsApiVersion} from '../plugin/constants'
 
@@ -54,10 +56,25 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
         (existingGroups as Array<{default?: boolean; name: string}>).find((group) => group.default)
           ?.name ?? existingGroups[0]?.name
 
+      const resolveInitialStatus = async (
+        _params: unknown,
+        context: InitialValueResolverContext,
+      ) => {
+        const client = context.getClient({apiVersion: getWorkflowsApiVersion()})
+        const firstStageSlug = await client.fetch<string | null>(
+          `*[_type == "workflowDefinition" && documentType == $docType][0].stages[0].slug.current`,
+          {docType: documentType.name},
+        )
+        return firstStageSlug ?? undefined
+      }
+
       const statusField = defineField({
         name: 'status',
         type: 'string',
-        initialValue: 'draft',
+        initialValue: resolveInitialStatus as (
+          params: unknown,
+          context: InitialValueResolverContext,
+        ) => Promise<string>,
         ...(defaultGroup ? {group: defaultGroup} : {}),
         options: {
           workflowDocumentType: documentType.name,
@@ -78,6 +95,9 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
             type: 'array',
             of: [defineArrayMember({type: 'assignment'})],
             ...(defaultGroup ? {group: defaultGroup} : {}),
+            components: {
+              field: WorkflowAssignmentsFieldWrapper,
+            },
           })
         : null
 

@@ -14,6 +14,10 @@ vi.mock('../components/fields/SetStatus/WorkflowStatusFieldWrapper', () => ({
   WorkflowStatusFieldWrapper: () => null,
 }))
 
+vi.mock('../components/fields/Assignments/WorkflowAssignmentsFieldWrapper', () => ({
+  WorkflowAssignmentsFieldWrapper: () => null,
+}))
+
 import {withWorkflow} from './withWorkflow'
 
 type AnyField = {name: string; [key: string]: unknown}
@@ -51,6 +55,46 @@ describe('withWorkflow', () => {
       'statuses',
       'pendingTransitionReason',
     ])
+  })
+
+  it('resolves the injected status initial value from the workflow first stage', async () => {
+    const article = makeDocument('article', [{name: 'title', type: 'string'}])
+
+    const [decorated] = withWorkflow()([article])
+
+    const decoratedFields = (decorated as {fields?: AnyField[]}).fields ?? []
+    const status = decoratedFields.find((field) => field.name === 'status')
+    const initialValue = status?.initialValue
+    const fetch = vi.fn().mockResolvedValue('briefing')
+    const getClient = vi.fn(() => ({fetch}))
+
+    expect(initialValue).toEqual(expect.any(Function))
+    expect(initialValue).not.toBe('draft')
+    await expect(
+      (
+        initialValue as (
+          params: undefined,
+          context: {getClient: typeof getClient},
+        ) => Promise<string | undefined>
+      )(undefined, {
+        getClient,
+      }),
+    ).resolves.toBe('briefing')
+    expect(getClient).toHaveBeenCalledWith({apiVersion: '2026-04-12'})
+    expect(fetch).toHaveBeenCalledWith(
+      `*[_type == "workflowDefinition" && documentType == $docType][0].stages[0].slug.current`,
+      {docType: 'article'},
+    )
+  })
+
+  it('gates the injected assignments field with a visibility wrapper', () => {
+    const article = makeDocument('article', [{name: 'title', type: 'string'}])
+
+    const [decorated] = withWorkflow()([article])
+
+    const decoratedFields = (decorated as {fields?: AnyField[]}).fields ?? []
+    const assignments = decoratedFields.find((field) => field.name === 'assignments')
+    expect((assignments as {components?: {field?: unknown}})?.components?.field).toBeDefined()
   })
 
   it('leaves a document that already declares its own assignments field alone for that field', () => {
