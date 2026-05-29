@@ -12,7 +12,7 @@ import {WorkflowAssignmentsFieldWrapper} from '../components/fields/Assignments/
 import {WorkflowStatusFieldWrapper} from '../components/fields/SetStatus/WorkflowStatusFieldWrapper'
 import {getWorkflowsApiVersion} from '../plugin/constants'
 
-const DEFAULT_EXCLUDE = ['workflowDefinition', 'workflowsConfig']
+const DEFAULT_EXCLUDE = ['workflow.definition']
 
 /** @public */
 export type SchemaDecorator = (types: SchemaTypeDefinition[]) => SchemaTypeDefinition[]
@@ -62,7 +62,7 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
       ) => {
         const client = context.getClient({apiVersion: getWorkflowsApiVersion()})
         const firstStageSlug = await client.fetch<string | null>(
-          `*[_type == "workflowDefinition" && documentType == $docType][0].stages[0].slug.current`,
+          `*[_type == "workflow.definition" && documentType == $docType][0].stages[0].slug.current`,
           {docType: documentType.name},
         )
         return firstStageSlug ?? undefined
@@ -93,7 +93,7 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
             name: 'assignments',
             title: 'Assignments',
             type: 'array',
-            of: [defineArrayMember({type: 'assignment'})],
+            of: [defineArrayMember({type: 'workflow.assignment'})],
             ...(defaultGroup ? {group: defaultGroup} : {}),
             components: {
               field: WorkflowAssignmentsFieldWrapper,
@@ -105,7 +105,7 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
         name: 'statuses',
         title: 'Status History',
         type: 'array',
-        of: [defineArrayMember({type: 'setStatus'})],
+        of: [defineArrayMember({type: 'workflow.setStatus'})],
         options: {sortable: false},
         readOnly: true,
         hidden: true,
@@ -129,7 +129,7 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
 
           const client = getClient({apiVersion: getWorkflowsApiVersion()})
           const workflowDefinition = await client.fetch(
-            `*[_type == "workflowDefinition" && documentType == $docType][0]{
+            `*[_type == "workflow.definition" && documentType == $docType][0]{
               stages[]{ "statusSlug": slug.current, enablePublishing },
               offRamps[]{ "statusSlug": slug.current, enablePublishing }
             }`,

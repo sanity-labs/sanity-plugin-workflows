@@ -18,6 +18,7 @@
   },
   "files": [
     "dist",
+    "migrations",
     "README.md",
     "LICENSE",
     "sanity.json",
@@ -88,7 +89,7 @@
     "watch": "pkg-utils watch --strict"
   },
   "dependencies": {
-    "@sanity-labs/workflow-kit": "^0.2.1",
+    "@sanity-labs/workflow-kit": "^0.3.0",
     "@sanity/icons": "^3.7.4",
     "lucide-react": "^0.577.0"
   },

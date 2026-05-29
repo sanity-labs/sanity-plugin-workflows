@@ -3,7 +3,7 @@ import {defineField, defineType} from 'sanity'
 
 /** @public */
 export const setStatusObject = defineType({
-  name: 'setStatus',
+  name: 'workflow.setStatus',
   title: 'Set Status',
   type: 'object',
   icon: CheckCircle2,
@@ -60,7 +60,7 @@ export const setStatusObject = defineType({
     defineField({
       name: 'completedBy',
       title: 'Completed By',
-      type: 'user',
+      type: 'workflow.user',
       validation: (rule) => rule.required(),
     }),
     defineField({

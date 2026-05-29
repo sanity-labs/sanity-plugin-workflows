@@ -2,11 +2,11 @@
 
 Editor-configurable document workflows for Sanity Studio.
 
-Content authors define the workflow — stages, off-ramps, roles, task templates, completion gating, publish gating — in a `workflowDefinition` document. The plugin then takes care of the Studio wiring: it injects a `status` field, an `assignments` array, and an audit trail onto every workflow-aware document, turns the `Publish` action into a **Move to _next stage_** action, and surfaces an **Audit Trail** inspector.
+Content authors define the workflow — stages, off-ramps, roles, task templates, completion gating, publish gating — in a `workflow.definition` document. The plugin then takes care of the Studio wiring: it injects a `status` field, an `assignments` array, and an audit trail onto every workflow-aware document, turns the `Publish` action into a **Move to _next stage_** action, and surfaces an **Audit Trail** inspector.
 
 ![Studio: a document with a workflow attached to it](https://raw.githubusercontent.com/sanity-labs/sanity-plugin-workflows/main/docs/media/workflows-plugin-main-screenshot.avif)
 
-The simplest working setup is one line of config (`plugins: [workflowsPlugin()]`) plus one `workflowDefinition` document authored in Studio.
+The simplest working setup is one line of config (`plugins: [workflowsPlugin()]`) plus one `workflow.definition` document authored in Studio.
 
 - **Full API reference** → [docs/reference.md](docs/reference.md)
 - **Engine + UI primitives the plugin is built on** → [`@sanity-labs/workflow-kit`](https://github.com/sanity-labs/workflow-kit)
@@ -19,20 +19,20 @@ The simplest working setup is one line of config (`plugins: [workflowsPlugin()]`
 
 | Term                 | What it is                                                                                                                                                                                                                                                                                   |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `workflowDefinition` | A Studio document that describes _one_ workflow. Targets a single `documentType` and owns that type's stages, off-ramps, and roles.                                                                                                                                                          |
+| `workflow.definition` | A Studio document that describes _one_ workflow. Targets a single `documentType` and owns that type's stages, off-ramps, and roles.                                                                                                                                                          |
 | Stage                | A step on the happy path (e.g. `draft` → `in_review` → `approved`). Each stage has a label, icon, color, and optional tasks and gating rules.                                                                                                                                                |
 | Off-ramp             | A terminal/abandoned state that isn't part of the forward path (e.g. `spiked`, `archived`). Can unpublish the document on entry.                                                                                                                                                             |
-| Role                 | A workflow role (e.g. Reporter, Section Editor) authored inside the `workflowDefinition` document. Each role maps to one or more Sanity project roles via `workflowRole.projectRoles[]`; the plugin uses that mapping to resolve which Sanity users count as which workflow role at runtime. |
+| Role                 | A workflow role (e.g. Reporter, Section Editor) authored inside the `workflow.definition` document. Each role maps to one or more Sanity project roles via `workflow.role.projectRoles[]`; the plugin uses that mapping to resolve which Sanity users count as which workflow role at runtime. |
 | Task template        | A task that's auto-created on stage entry, with an assignee role and due date. Tasks live in the `-comments` addon dataset.                                                                                                                                                                  |
 | Completion gating    | If on, a stage can't be left until its required tasks are closed. Roles listed in `gatingOverrideRoles` can override.                                                                                                                                                                        |
 | Publish gating       | Documents can only be published when the current stage has `enablePublishing: true`. Enforced by a custom validator.                                                                                                                                                                         |
-| Audit trail          | Every transition appends a `setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                                                                                                                                                                       |
+| Audit trail          | Every transition appends a `workflow.setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                                                                                                                                                                       |
 
 ### How the pieces fit
 
 ```mermaid
 flowchart LR
-  Editor["Editor authors<br/>workflowDefinition doc"] --> Plugin
+  Editor["Editor authors<br/>workflow.definition doc"] --> Plugin
   Config["sanity.config.ts:<br/>workflowsPlugin()"] --> Plugin
   Plugin["Plugin registers:<br/>- withWorkflow decorator<br/>- action resolver<br/>- audit inspector"] --> Doc
   Doc["Any workflow-aware<br/>document type"] -->|"status field"| Action["Move to next stage<br/>(publish action)"]
@@ -77,11 +77,11 @@ export default defineConfig({
 
 With zero options, the plugin:
 
-- Registers the workflow schema types (`workflowDefinition`, stages, off-ramps, roles, task templates, assignments) plus support types (`user`, `lucide-icon`) required by the audit trail and workflow icons.
-- Applies the `withWorkflow()` decorator to all document types except the plugin's own config documents (`workflowDefinition` and `workflowsConfig`), injecting `status`, an `assignments` array, `statuses` (audit trail), and `pendingTransitionReason` fields plus a publish-gating validator.
+- Registers the workflow schema types (`workflow.definition`, stages, off-ramps, roles, task templates, assignments) plus namespaced support types (`workflow.user`, `workflow.lucideIcon`) required by the audit trail and workflow icons.
+- Applies the `withWorkflow()` decorator to all document types except the plugin's own `workflow.definition` documents, injecting `status`, an `assignments` array, `statuses` (audit trail), and `pendingTransitionReason` fields plus a publish-gating validator.
 - Registers the audit-trail publish action wrapper and the **Audit Trail** inspector.
 
-### 3. Author a workflowDefinition in Studio
+### 3. Author a workflow.definition in Studio
 
 Start Studio (`sanity dev`), open the new **Workflow Definition** document type, and create one:
 
@@ -112,6 +112,73 @@ That's a complete workflow. Everything below is optional customization.
 
 ---
 
+## Migrating to 0.3.0
+
+Version 0.3.0 namespaces the plugin's bundled schema types:
+
+- `workflowDefinition` -> `workflow.definition`
+- `workflowRole` -> `workflow.role`
+- `workflowStage` -> `workflow.stage`
+- `workflowOffRamp` -> `workflow.offRamp`
+- `taskTemplate` -> `workflow.taskTemplate`
+- `assignment` -> `workflow.assignment`
+- `setStatus` -> `workflow.setStatus`
+- `user` -> `workflow.user`
+- `lucide-icon` -> `workflow.lucideIcon`
+
+Version 0.3.0 also removes the deprecated `workflowsConfig`, `tableView`, and `tableViewColumn` schema types. Those types only supported the deprecated document lifecycle workflows dashboard and are no longer registered or exported by the plugin.
+
+New workflow audit entries are written as `workflow.setStatus` objects with `completedBy: {_type: 'workflow.user', userId}`. Existing datasets that already have workflow definitions, assignments, or audit history may still contain the old `_type` values. The runtime reads the same fields, so history can still render before migration, but the Studio can report historical entries as unknown object types until they are rewritten.
+
+Copy or run the example migration in [`migrations/namespace-workflow-schema-types`](migrations/namespace-workflow-schema-types):
+
+```ts
+import {at, defineMigration, set} from 'sanity/migrate'
+
+const OBJECT_TYPE_RENAMES = {
+  assignment: 'workflow.assignment',
+  setStatus: 'workflow.setStatus',
+  taskTemplate: 'workflow.taskTemplate',
+  workflowOffRamp: 'workflow.offRamp',
+  workflowRole: 'workflow.role',
+  workflowStage: 'workflow.stage',
+}
+
+export default defineMigration({
+  migrate: {
+    document(doc) {
+      if (doc._type === 'workflowDefinition') {
+        return at('_type', set('workflow.definition'))
+      }
+    },
+    object(obj, path) {
+      const lastSegment = path[path.length - 1]
+      const nextType =
+        obj._type === 'user' && lastSegment === 'completedBy'
+          ? 'workflow.user'
+          : typeof obj._type === 'string'
+            ? OBJECT_TYPE_RENAMES[obj._type]
+            : undefined
+
+      if (nextType) {
+        return set({...obj, _type: nextType})
+      }
+    },
+  },
+  title: 'Namespace workflow schema types',
+})
+```
+
+Run it once per affected dataset from your Studio directory:
+
+```sh
+npx sanity migration run namespace-workflow-schema-types --no-dry-run --project <project-id> --dataset <dataset>
+```
+
+Lucide icon string values do not need data changes. If you used the optional `generateStatusType()` helper, migrate `status` documents to `workflow.status` separately so you do not accidentally rename unrelated project-specific status documents.
+
+---
+
 ## How the plugin works across Sanity plans
 
 The core workflow works on every Sanity plan. Plan differences only show up when you map workflow roles to Sanity project roles. That mapping drives gating overrides, off-ramp access, and assignee eligibility.
@@ -124,7 +191,7 @@ The core workflow works on every Sanity plan. Plan differences only show up when
 
 Nothing about the plugin requires Enterprise. Enterprise simply gives role mapping more room to model real-world teams.
 
-For the schema-level details behind this mapping, see [`workflowRole.projectRoles[]`](docs/reference.md#workflowroleobject) in the [full API reference](docs/reference.md).
+For the schema-level details behind this mapping, see [`workflow.role.projectRoles[]`](docs/reference.md#workflowroleobject) in the [full API reference](docs/reference.md).
 
 ---
 
@@ -132,7 +199,7 @@ For the schema-level details behind this mapping, see [`workflowRole.projectRole
 
 ### Track team assignments on content documents
 
-Every workflow-aware document gets an `assignments` array field injected automatically. No schema edit required. Each entry captures a workflow role (auto-populated from `workflowDefinition.roles[]`) and the Sanity user id assigned to it — so editors can record who's the reporter on this article, who's the section editor, and so on, with the picker always in sync with the current workflow definition.
+Every workflow-aware document gets an `assignments` array field injected automatically. No schema edit required. Each entry captures a workflow role (auto-populated from `workflow.definition.roles[]`) and the Sanity user id assigned to it — so editors can record who's the reporter on this article, who's the section editor, and so on, with the picker always in sync with the current workflow definition.
 
 #### Opt out or customize
 
@@ -144,7 +211,7 @@ workflowsPlugin({ injectAssignments: false });
 
 Or declare your own `assignments` field on the document type, and the decorator will leave it alone.
 
-_Customize_ — if you need additional fields on assignments (e.g. a channel or market categorization), define your own schema type with `name: 'assignment'` and register it via `workflowsPlugin({schemaTypes: [yourAssignment]})`. The plugin merges schema types by name, so yours replaces the default.
+_Customize_ — if you need additional fields on assignments (e.g. a channel or market categorization), define your own schema type with `name: 'workflow.assignment'` and register it via `workflowsPlugin({schemaTypes: [yourAssignment]})`. The plugin merges schema types by name, so yours replaces the default.
 
 Copy the shape from the plugin's own `assignmentObject` export (exported from `@sanity-labs/sanity-plugin-workflows/schema`) as a starting point.
 
@@ -152,14 +219,14 @@ Copy the shape from the plugin's own `assignmentObject` export (exported from `@
 
 The plugin registers small default support types so a clean Studio works with only `workflowsPlugin()`:
 
-- `user` - an object with `userId: string`, used by `setStatus.completedBy` audit entries.
-- `lucide-icon` - a string for storing Lucide icon names such as `check-circle-2`.
+- `workflow.user` - an object with `userId: string`, used by `workflow.setStatus.completedBy` audit entries.
+- `workflow.lucideIcon` - a string for storing Lucide icon names such as `check-circle-2`.
 
-If your Studio already has richer versions of these types, register them through `workflowsPlugin({schemaTypes: [...]})` or your normal schema list. Schema types are merged by `name`, so your `user` or `lucide-icon` definition replaces the default. For example, you can provide a `user` object whose `userId` field uses `sanity-plugin-user-select-input`; just make sure that plugin is also registered in `sanity.config.ts`.
+If your Studio already has richer versions of these types, register them through `workflowsPlugin({schemaTypes: [...]})` or your normal schema list. Schema types are merged by `name`, so your `workflow.user` or `workflow.lucideIcon` definition replaces the default. For example, you can provide a `workflow.user` object whose `userId` field uses `sanity-plugin-user-select-input`; just make sure that plugin is also registered in `sanity.config.ts`.
 
 ### Exclude document types
 
-You might want to ensure that editors cannot add workflows to specific document types — singletons, config documents, embedded blocks surfaced as documents, etc. By default the plugin only excludes its own config documents: `workflowDefinition` and `workflowsConfig`.
+You might want to ensure that editors cannot add workflows to specific document types — singletons, config documents, embedded blocks surfaced as documents, etc. By default the plugin only excludes its own `workflow.definition` documents.
 
 To add your own, disable the plugin's built-in decorator and run `withWorkflow` yourself with your exclude list:
 
@@ -300,23 +367,23 @@ export default defineConfig({
 });
 ```
 
-The inspector only renders when `useHasWorkflow(documentType)` returns `true`, i.e. a published `workflowDefinition` document exists for that type.
+The inspector only renders when `useHasWorkflow(documentType)` returns `true`, i.e. a published `workflow.definition` document exists for that type.
 
-### Ship a ready-to-import `workflowDefinition`
+### Ship a ready-to-import `workflow.definition`
 
 You can seed a workflow as an NDJSON import so a repo clone doesn't require authoring a workflow from scratch:
 
 ```json
 {
-  "_id": "workflowDefinition.article",
-  "_type": "workflowDefinition",
+  "_id": "workflow.definition.article",
+  "_type": "workflow.definition",
   "title": "Article workflow",
   "slug": { "_type": "slug", "current": "article" },
   "documentType": "article",
   "forwardOnly": false,
   "roles": [
     {
-      "_type": "workflowRole",
+      "_type": "workflow.role",
       "_key": "role-reporter",
       "label": "Reporter",
       "slug": { "_type": "slug", "current": "reporter" },
@@ -325,7 +392,7 @@ You can seed a workflow as an NDJSON import so a repo clone doesn't require auth
   ],
   "stages": [
     {
-      "_type": "workflowStage",
+      "_type": "workflow.stage",
       "_key": "stage-draft",
       "label": "Draft",
       "slug": { "_type": "slug", "current": "draft" },
@@ -333,7 +400,7 @@ You can seed a workflow as an NDJSON import so a repo clone doesn't require auth
       "enablePublishing": false
     },
     {
-      "_type": "workflowStage",
+      "_type": "workflow.stage",
       "_key": "stage-review",
       "label": "In Review",
       "slug": { "_type": "slug", "current": "in_review" },
@@ -341,7 +408,7 @@ You can seed a workflow as an NDJSON import so a repo clone doesn't require auth
       "enablePublishing": false
     },
     {
-      "_type": "workflowStage",
+      "_type": "workflow.stage",
       "_key": "stage-approved",
       "label": "Approved",
       "slug": { "_type": "slug", "current": "approved" },
@@ -392,8 +459,8 @@ If you're adding workflows to a Studio for the first time, this plugin is the ba
 
 **No "Move to _next stage_" action appears on a document.**
 
-- The document type is one of the plugin's default exclusions: `workflowDefinition` or `workflowsConfig`.
-- No published `workflowDefinition` exists where `documentType == "<yourType>"`. The decorator checks for the definition at validate time; the action only renders when `findNextWorkflowStage` returns a stage after the current `status`.
+- The document type is the plugin's default exclusion: `workflow.definition`.
+- No published `workflow.definition` exists where `documentType == "<yourType>"`. The decorator checks for the definition at validate time; the action only renders when `findNextWorkflowStage` returns a stage after the current `status`.
 - The document's `status` is the last stage on the happy path. There's no next stage to move to — the original `Publish` action is shown instead.
 - Publish action itself was suppressed earlier in the action chain. The transition wrapper only wraps actions whose `action === 'publish'`.
 
@@ -406,11 +473,11 @@ The `withWorkflow` decorator intentionally skips types that already declare a `s
 By default the plugin injects an `assignments` array on every workflow-aware document. Two ways to suppress it:
 
 - Declare your own `assignments` field on that document type — the decorator sees an existing field with that name and leaves it alone.
-- Disable the injection globally with `workflowsPlugin({ injectAssignments: false })`. You can still add `{type: 'assignment'}` to specific array fields yourself.
+- Disable the injection globally with `workflowsPlugin({ injectAssignments: false })`. You can still add `{type: 'workflow.assignment'}` to specific array fields yourself.
 
 **Publish is blocked with _"Cannot publish - document must reach …"_.**
 
-The publish-gating validator only allows publish on stages/off-ramps where `enablePublishing: true`. Flip the toggle on the target stage in the `workflowDefinition` and republish the definition.
+The publish-gating validator only allows publish on stages/off-ramps where `enablePublishing: true`. Flip the toggle on the target stage in the `workflow.definition` and republish the definition.
 
 **The transition dialog opens straight to the "open tasks remaining" view.**
 

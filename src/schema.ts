@@ -1,13 +1,10 @@
 export {withWorkflow, type SchemaDecorator} from './internal/schema/withWorkflow'
 export {workflowDefinitionType} from './internal/schema/documents/workflowDefinitionType'
-export {workflowsConfigType} from './internal/schema/documents/workflowsConfigType'
 export {assignmentObject} from './internal/schema/objects/assignmentObject'
 export {
   generateStatusType,
   reusableStatusTrackerField,
 } from './internal/schema/objects/generators/statusType'
-export {generateTableViewColumnType} from './internal/schema/objects/generators/tableViewColumnType'
-export {generateTableViewType} from './internal/schema/objects/generators/tableViewType'
 export {lucideIconType} from './internal/schema/objects/lucideIconType'
 export {setStatusObject} from './internal/schema/objects/setStatusObject'
 export {generateTaskTemplateObject} from './internal/schema/objects/taskTemplateObject'

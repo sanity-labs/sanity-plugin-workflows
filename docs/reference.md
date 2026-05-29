@@ -36,7 +36,7 @@ Factory returned from `definePlugin<WorkflowsPluginOptions>`. Register it in `pl
 Behavior:
 
 1. Calls `configureWorkflowsApiVersion(options.apiVersion)`.
-2. Merges your `schemaTypes` over the built-in defaults and runs `withWorkflow()` on the whole schema list. Defaults include support types `user` and `lucide-icon`; define types with the same names to replace them.
+2. Merges your `schemaTypes` over the built-in defaults and runs `withWorkflow()` on the whole schema list. Defaults include support types `workflow.user` and `workflow.lucideIcon`; define types with the same names to replace them.
 3. If `actions` is enabled, registers `workflowAuditTrailActionResolver` as `document.actions`.
 4. If `inspector` is enabled, prepends `createWorkflowAuditInspector()` to `document.inspectors`.
 
@@ -48,7 +48,6 @@ Behavior:
 import {
   withWorkflow,
   workflowDefinitionType,
-  workflowsConfigType,
   lucideIconType,
   setStatusObject,
   userObject,
@@ -57,8 +56,6 @@ import {
   generateWorkflowStageObject,
   generateWorkflowOffRampObject,
   generateTaskTemplateObject,
-  generateTableViewType,
-  generateTableViewColumnType,
   generateStatusType,
   reusableStatusTrackerField,
   type SchemaDecorator,
@@ -77,15 +74,15 @@ withWorkflow(options?: {
 
 Decorator that maps over a list of schema types and, for every `type: 'document'` that isn't excluded, injects:
 
-- `status` - `string` field with an async `initialValue` resolver that returns the first stage slug for the matching `workflowDefinition`, or `undefined` when no workflow targets the document type. Includes `options.workflowDocumentType = documentType.name`, a custom `field` component (`WorkflowStatusFieldWrapper`) and the `StatusPathInput` from `@sanity-labs/workflow-kit/studio`. Placed first in the field list and attached to the document's default group if any.
-- `assignments` - array of `assignment` objects, placed immediately after `status`. Joins the same default group as `status` and is gated by a `field` component (`WorkflowAssignmentsFieldWrapper`) that hides it when no `workflowDefinition` targets the document type. Skipped when `options.injectAssignments === false` or when the document already declares an `assignments` field.
-- `statuses` - hidden, read-only array of `setStatus` objects. The audit trail.
+- `status` - `string` field with an async `initialValue` resolver that returns the first stage slug for the matching `workflow.definition`, or `undefined` when no workflow targets the document type. Includes `options.workflowDocumentType = documentType.name`, a custom `field` component (`WorkflowStatusFieldWrapper`) and the `StatusPathInput` from `@sanity-labs/workflow-kit/studio`. Placed first in the field list and attached to the document's default group if any.
+- `assignments` - array of `workflow.assignment` objects, placed immediately after `status`. Joins the same default group as `status` and is gated by a `field` component (`WorkflowAssignmentsFieldWrapper`) that hides it when no `workflow.definition` targets the document type. Skipped when `options.injectAssignments === false` or when the document already declares an `assignments` field.
+- `statuses` - hidden, read-only array of `workflow.setStatus` objects. The audit trail.
 - `pendingTransitionReason` - hidden `text` field used to carry a transition note into side effects.
 - A composed `validation` function that calls any existing validator and enforces publish-gating: the document can only be published if its current stage or off-ramp has `enablePublishing: true`.
 
 The decorator skips the whole injection on any document that already declares a `status` or `statuses` field. This is the documented escape hatch for domain lifecycles (see `reusableStatusTrackerField` below). The `assignments` check is separate and only suppresses the `assignments` field specifically — a document that declares its own `assignments` still gets the other injected fields.
 
-Default exclude list (always applied, plus anything you pass in `exclude`): `workflowDefinition`, `workflowsConfig`.
+Default exclude list (always applied, plus anything you pass in `exclude`): `workflow.definition`.
 
 #### `SchemaDecorator`
 
@@ -99,7 +96,7 @@ type SchemaDecorator = (types: SchemaTypeDefinition[]) => SchemaTypeDefinition[]
 const workflowDefinitionType: SchemaTypeDefinition
 ```
 
-`document`, name `workflowDefinition`. Icon: `lucide-react/Workflow`.
+`document`, name `workflow.definition`. Icon: `lucide-react/Workflow`.
 
 Fields:
 
@@ -110,19 +107,9 @@ Fields:
 | `documentType` | `string`                   | Required. Rendered with `DocumentTypeSelectInput` - lists the current Studio's document types.                   |
 | `description`  | `text` (2 rows)            |                                                                                                                  |
 | `forwardOnly`  | `boolean`, initial `false` | When `true`, UIs should disable backwards transitions (plugin convention).                                       |
-| `roles`        | `array of workflowRole`    | Required, min 1. Error: "A workflow must have at least 1 role".                                                  |
-| `stages`       | `array of workflowStage`   | Required, min 2. Error: "A workflow must have at least 2 stages".                                                |
-| `offRamps`     | `array of workflowOffRamp` | Optional.                                                                                                        |
-
-### `workflowsConfigType`
-
-```ts
-const workflowsConfigType: SchemaTypeDefinition
-```
-
-`document`, name `workflowsConfig`. Icon: `lucide-react/Settings2`. One field:
-
-- `tableViews` - `array of tableView`.
+| `roles`        | `array of workflow.role`    | Required, min 1. Error: "A workflow must have at least 1 role".                                                  |
+| `stages`       | `array of workflow.stage`   | Required, min 2. Error: "A workflow must have at least 2 stages".                                                |
+| `offRamps`     | `array of workflow.offRamp` | Optional.                                                                                                        |
 
 ### `userObject`
 
@@ -130,7 +117,7 @@ const workflowsConfigType: SchemaTypeDefinition
 const userObject: SchemaTypeDefinition
 ```
 
-`object`, name `user`. Default support type for `setStatus.completedBy`. Fields: `userId` (`string`, required). Override this type if your Studio has a richer project-member picker, for example a `userId` field using `sanity-plugin-user-select-input`.
+`object`, name `workflow.user`. Default support type for `workflow.setStatus.completedBy`. Fields: `userId` (`string`, required). Override this type if your Studio has a richer project-member picker, for example a `userId` field using `sanity-plugin-user-select-input`.
 
 ### `lucideIconType`
 
@@ -138,7 +125,7 @@ const userObject: SchemaTypeDefinition
 const lucideIconType: SchemaTypeDefinition
 ```
 
-`string`, name `lucide-icon`. Default support type for workflow stage and off-ramp icon fields. Values are stored as Lucide icon names in kebab-case, e.g. `check-circle-2`. Override this type if your Studio uses a richer Lucide icon picker.
+`string`, name `workflow.lucideIcon`. Default support type for workflow stage and off-ramp icon fields. Values are stored as Lucide icon names in kebab-case, e.g. `check-circle-2`. Override this type if your Studio uses a richer Lucide icon picker.
 
 ### `setStatusObject`
 
@@ -146,9 +133,9 @@ const lucideIconType: SchemaTypeDefinition
 const setStatusObject: SchemaTypeDefinition
 ```
 
-`object`, name `setStatus`. Icon: `lucide-react/CheckCircle2`. One `setStatus` is appended to `statuses` per transition.
+`object`, name `workflow.setStatus`. Icon: `lucide-react/CheckCircle2`. One `workflow.setStatus` is appended to `statuses` per transition.
 
-Fields: `statusLabel` (required, read-only), `statusSlug` (required, read-only), `statusIcon` (read-only), `completedAt` (datetime, required, read-only, defaults to now), `completedBy` (`user`, required), `reason` (text, read-only).
+Fields: `statusLabel` (required, read-only), `statusSlug` (required, read-only), `statusIcon` (read-only), `completedAt` (datetime, required, read-only, defaults to now), `completedBy` (`workflow.user`, required), `reason` (text, read-only).
 
 ### `workflowRoleObject`
 
@@ -156,7 +143,7 @@ Fields: `statusLabel` (required, read-only), `statusSlug` (required, read-only),
 const workflowRoleObject: SchemaTypeDefinition
 ```
 
-`object`, name `workflowRole`. Icon: `lucide-react/Users`.
+`object`, name `workflow.role`. Icon: `lucide-react/Users`.
 
 Fields: `label` (required), `slug` (required, sourced from `label`), `description` (text), `projectRoles` (array of `string` - Sanity project role names that count as this role).
 
@@ -172,9 +159,9 @@ generateWorkflowStageObject(options: {
 }): SchemaTypeDefinition
 ```
 
-Name: `workflowStage`. Icon: `lucide-react/SignpostBig`.
+Name: `workflow.stage`. Icon: `lucide-react/SignpostBig`.
 
-Fields: `label` (required), `slug` (required, sourced from `label`), `icon` (`lucide-icon`), `color` (hex, `/^#[0-9A-Fa-f]{6}$/`), `stageCriteria` (portable text, `block` only), `taskTemplates` (array of `taskTemplate`), `enableCompletionGating` (boolean, default `false`), `gatingOverrideRoles` (string array, hidden unless gating on, rendered with `WorkflowRoleCheckboxInput`), `enablePublishing` (boolean, default `false`), `enableNotifications` (boolean, default `true`), `notifyUserTypes` (string array, `options.list = notifyUserTypesOptions`, hidden unless notifications on).
+Fields: `label` (required), `slug` (required, sourced from `label`), `icon` (`workflow.lucideIcon`), `color` (hex, `/^#[0-9A-Fa-f]{6}$/`), `stageCriteria` (portable text, `block` only), `taskTemplates` (array of `workflow.taskTemplate`), `enableCompletionGating` (boolean, default `false`), `gatingOverrideRoles` (string array, hidden unless gating on, rendered with `WorkflowRoleCheckboxInput`), `enablePublishing` (boolean, default `false`), `enableNotifications` (boolean, default `true`), `notifyUserTypes` (string array, `options.list = notifyUserTypesOptions`, hidden unless notifications on).
 
 #### `generateWorkflowOffRampObject(options)`
 
@@ -184,7 +171,7 @@ generateWorkflowOffRampObject(options: {
 }): SchemaTypeDefinition
 ```
 
-Name: `workflowOffRamp`. Icon: `lucide-react/RouteOff`. Tone colors default to amber (`caution`) / red (`critical`) / gray (`neutral`).
+Name: `workflow.offRamp`. Icon: `lucide-react/RouteOff`. Tone colors default to amber (`caution`) / red (`critical`) / gray (`neutral`).
 
 Fields: `label`, `slug`, `icon`, `tone` (`caution` or `critical`, radio layout), `stageCriteria`, `enablePublishing`, `unpublishOnEntry` (boolean, default `false`), `allowedRoles` (string array, rendered with `WorkflowRoleCheckboxInput`), `enableNotifications`, `notifyUserTypes`.
 
@@ -196,7 +183,7 @@ generateTaskTemplateObject(options: {
 }): SchemaTypeDefinition
 ```
 
-Name: `taskTemplate`. Icon: `lucide-react/ClipboardList`.
+Name: `workflow.taskTemplate`. Icon: `lucide-react/ClipboardList`.
 
 Fields: `title` (required), `description` (portable text), `assigneeRole` (`string`, `options.list = assignmentTypeOptions`, rendered with `WorkflowRoleSelectInput`), `dueInDays` (`number`, min 0, integer), `required` (boolean, default `true`).
 
@@ -206,40 +193,16 @@ Fields: `title` (required), `description` (portable text), `assigneeRole` (`stri
 const assignmentObject: SchemaTypeDefinition
 ```
 
-`object`, name `assignment`. Icon: `lucide-react/UserRound`. Fixed schema type — there is no generator.
+`object`, name `workflow.assignment`. Icon: `lucide-react/UserRound`. Fixed schema type — there is no generator.
 
 Fields:
 
-- `assignmentType` — `string`, rendered with a custom input that populates its dropdown from the parent document's `workflowDefinition.roles[]` at runtime. Stores the workflow role slug (e.g. `reporter`, `section_editor`). No static option list is required; no code-level customization is needed for the common case.
+- `assignmentType` — `string`, rendered with a custom input that populates its dropdown from the parent document's `workflow.definition.roles[]` at runtime. Stores the workflow role slug (e.g. `reporter`, `section_editor`). No static option list is required; no code-level customization is needed for the common case.
 - `userId` — `string`. The Sanity project-user id assigned to this workflow role for this document.
 
-Registered automatically by the plugin (and auto-injected via `withWorkflow` when `injectAssignments !== false`). Also exported for direct use — add `{type: 'assignment'}` to any array field if you're opting out of the auto-injection but still want assignments somewhere.
+Registered automatically by the plugin (and auto-injected via `withWorkflow` when `injectAssignments !== false`). Also exported for direct use — add `{type: 'workflow.assignment'}` to any array field if you're opting out of the auto-injection but still want assignments somewhere.
 
-To carry additional fields beyond `assignmentType` and `userId` (channel, market, region, language, etc.), define your own schema type with `name: 'assignment'` and register it via `workflowsPlugin({schemaTypes: [yourAssignment]})`. The plugin merges schema types by name, so yours replaces the default.
-
-#### `generateTableViewType(options)`
-
-```ts
-generateTableViewType(options: {
-  contentTypeOptions: WorkflowListOption[]
-}): SchemaTypeDefinition
-```
-
-Name: `tableView`. Icon: `lucide-react/Table2`.
-
-Fields: `contentType` (`options.list = contentTypeOptions`), `name` (required, unique within parent `tableViews[]` array), `description` (text), `isDefault` (boolean, default `false`), `columns` (array of `tableViewColumn`, min 1, no duplicate `field` values).
-
-#### `generateTableViewColumnType(options)`
-
-```ts
-generateTableViewColumnType(options: {
-  tableColumns: WorkflowListOption[]
-}): SchemaTypeDefinition
-```
-
-Name: `tableViewColumn`. Icon: `lucide-react/Columns3`.
-
-Fields: `field` (required, `options.list = tableColumns`), `displayName`, `pinned` (`none`, `left`, or `right`, default `none`, radio layout).
+To carry additional fields beyond `assignmentType` and `userId` (channel, market, region, language, etc.), define your own schema type with `name: 'workflow.assignment'` and register it via `workflowsPlugin({schemaTypes: [yourAssignment]})`. The plugin merges schema types by name, so yours replaces the default.
 
 #### `generateStatusType(options)`
 
@@ -249,9 +212,9 @@ generateStatusType(options: {
 }): SchemaTypeDefinition
 ```
 
-**Not registered by the plugin by default.** An alternative lifecycle document type (`status`) for Studios that want reusable status documents instead of stage arrays embedded in a workflow definition.
+**Not registered by the plugin by default.** An alternative lifecycle document type (`workflow.status`) for Studios that want reusable status documents instead of stage arrays embedded in a workflow definition.
 
-Name: `status`. Fields: `label`, `slug`, `enableNotifications`, `notifyUserTypes`, `completionCriteria` (portable text).
+Name: `workflow.status`. Fields: `label`, `slug`, `enableNotifications`, `notifyUserTypes`, `completionCriteria` (portable text).
 
 ### `reusableStatusTrackerField`
 
@@ -297,7 +260,7 @@ import {
 
 The composite resolver the plugin mounts by default. In order:
 
-1. Wraps the built-in `publish` action so that when publish succeeds it appends a `setStatus` entry (via `appendStatusAuditEntry`) and creates any task templates attached to the current stage (via `createTasksForWorkflowTemplates` with `skipIfTasksExist: true`). Skips if the document type has no `status` field.
+1. Wraps the built-in `publish` action so that when publish succeeds it appends a `workflow.setStatus` entry (via `appendStatusAuditEntry`) and creates any task templates attached to the current stage (via `createTasksForWorkflowTemplates` with `skipIfTasksExist: true`). Skips if the document type has no `status` field.
 2. Runs `workflowOffRampDocumentActionsResolver` to insert up to 10 off-ramp slot actions after the publish action.
 3. Runs `workflowTransitionActionResolver` to replace the publish action label with "Move to _next stage_" and attach the confirm/gated dialog flow.
 
@@ -333,7 +296,7 @@ Directly builds the transition action for a single document type. Lifecycle:
    - Else if the next stage has `stageCriteria` or `taskTemplates`, opens the **Confirm** dialog (`WorkflowTransitionConfirmDialogContent`).
    - Else calls `performWorkflowTransition` immediately.
 4. Action label: `Move to <label-or-slug>`. Icon: the stage's Lucide icon (kebab-case to PascalCase) or `ArrowRightIcon`.
-5. While `workflowDefinition === undefined` the action is disabled with label "Loading workflow...".
+5. While `workflow.definition === undefined` the action is disabled with label "Loading workflow...".
 
 Override role privileges for gating are resolved via `userHasWorkflowRoleAccess` against `useWorkflowProjectUsers(client)`.
 
@@ -346,7 +309,7 @@ function createWorkflowOffRampSlotAction(
 ): DocumentActionComponent
 ```
 
-Returns a slot action that renders as "Move to _off-ramp label_" for the off-ramp at `workflowDefinition.offRamps[slotIndex]`. Returns `null` when the slot is empty or prerequisites fail (no `status` field, no document snapshot, no published definition). On confirm:
+Returns a slot action that renders as "Move to _off-ramp label_" for the off-ramp at `workflow.definition.offRamps[slotIndex]`. Returns `null` when the slot is empty or prerequisites fail (no `status` field, no document snapshot, no published definition). On confirm:
 
 1. Calls `performWorkflowTransition`.
 2. If `offRamp.unpublishOnEntry === true`, calls `client.action({actionType: 'sanity.action.document.unpublish', ...})` to take the document off live.
@@ -403,7 +366,7 @@ Standalone component. Fetches the document's `statuses` array, subscribes via `c
 function useHasWorkflow(documentType: string): boolean | null
 ```
 
-React hook. Returns `null` while loading, `true` if a published `workflowDefinition` with matching `documentType` exists, `false` otherwise. Uses the plugin's configured API version.
+React hook. Returns `null` while loading, `true` if a published `workflow.definition` with matching `documentType` exists, `false` otherwise. Uses the plugin's configured API version.
 
 ### `WorkflowStatusEntry`
 
@@ -425,7 +388,7 @@ interface WorkflowStatusEntry {
 }
 ```
 
-Shape of a single audit entry as rendered by the inspector. This is the denormalized version - the on-document `setStatus` entry produced by the engine uses `completedBy: {_type: 'user', userId}` and is typed as `WorkflowStatusAuditEntry` in `@sanity-labs/workflow-kit`.
+Shape of a single audit entry as rendered by the inspector. This is the denormalized version - the on-document `workflow.setStatus` entry produced by the engine uses `completedBy: {_type: 'workflow.user', userId}` and is typed as `WorkflowStatusAuditEntry` in `@sanity-labs/workflow-kit`.
 
 ---
 

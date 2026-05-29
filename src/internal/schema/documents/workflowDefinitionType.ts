@@ -6,7 +6,7 @@ import {sanitySlugify} from '../utils'
 
 /** @public */
 export const workflowDefinitionType = defineType({
-  name: 'workflowDefinition',
+  name: 'workflow.definition',
   title: 'Workflow Definition',
   type: 'document',
   icon: Workflow,
@@ -66,21 +66,21 @@ export const workflowDefinitionType = defineType({
       name: 'roles',
       title: 'Workflow Roles',
       type: 'array',
-      of: [defineArrayMember({type: 'workflowRole'})],
+      of: [defineArrayMember({type: 'workflow.role'})],
       validation: (rule) => rule.required().min(1).error('A workflow must have at least 1 role'),
     }),
     defineField({
       name: 'stages',
       title: 'Workflow Stages',
       type: 'array',
-      of: [defineArrayMember({type: 'workflowStage'})],
+      of: [defineArrayMember({type: 'workflow.stage'})],
       validation: (rule) => rule.required().min(2).error('A workflow must have at least 2 stages'),
     }),
     defineField({
       name: 'offRamps',
       title: 'Off-Ramps',
       type: 'array',
-      of: [defineArrayMember({type: 'workflowOffRamp'})],
+      of: [defineArrayMember({type: 'workflow.offRamp'})],
     }),
   ],
 })

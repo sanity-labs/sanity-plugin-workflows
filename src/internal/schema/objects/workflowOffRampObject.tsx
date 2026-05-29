@@ -25,7 +25,7 @@ export const generateWorkflowOffRampObject = ({
   notifyUserTypesOptions?: WorkflowListOption[]
 }) =>
   defineType({
-    name: 'workflowOffRamp',
+    name: 'workflow.offRamp',
     title: 'Workflow Off-Ramp',
     type: 'object',
     icon: RouteOff,
@@ -84,7 +84,7 @@ export const generateWorkflowOffRampObject = ({
       }),
       defineField({
         name: 'icon',
-        type: 'lucide-icon',
+        type: 'workflow.lucideIcon',
       }),
       defineField({
         name: 'tone',

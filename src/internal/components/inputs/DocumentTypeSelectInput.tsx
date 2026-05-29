@@ -5,10 +5,7 @@ import {set, unset, useSchema} from 'sanity'
 
 const SYSTEM_TYPE_PREFIXES = ['sanity.']
 const EXCLUDED_TYPES = new Set([
-  'workflowDefinition',
-  'workflowsConfig',
-  'tableView',
-  'tableViewColumn',
+  'workflow.definition',
   'insertMenuPreview',
 ])
 

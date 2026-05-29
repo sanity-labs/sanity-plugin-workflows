@@ -11,7 +11,7 @@ export const reusableStatusTrackerField = defineField({
   name: 'statuses',
   title: 'Statuses Tracker',
   type: 'array',
-  of: [defineArrayMember({type: 'setStatus'})],
+  of: [defineArrayMember({type: 'workflow.setStatus'})],
   options: {
     sortable: false,
   },
@@ -28,7 +28,7 @@ export const generateStatusType = ({
   notifyUserTypesOptions?: WorkflowListOption[]
 }) =>
   defineType({
-    name: 'status',
+    name: 'workflow.status',
     title: 'Lifecycle Status',
     type: 'document',
     icon: CheckCircle2,

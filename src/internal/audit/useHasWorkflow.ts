@@ -9,7 +9,7 @@ export function useHasWorkflow(documentType: string): boolean | null {
   const [hasWorkflow, setHasWorkflow] = useState<boolean | null>(null)
 
   useEffect(() => {
-    const query = `*[_type == "workflowDefinition" && documentType == $docType][0]._id`
+    const query = `*[_type == "workflow.definition" && documentType == $docType][0]._id`
 
     client
       .fetch<string | null>(query, {docType: documentType})
