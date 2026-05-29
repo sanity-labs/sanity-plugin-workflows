@@ -77,8 +77,8 @@ withWorkflow(options?: {
 
 Decorator that maps over a list of schema types and, for every `type: 'document'` that isn't excluded, injects:
 
-- `status` - `string` field with `initialValue: 'draft'`, `options.workflowDocumentType = documentType.name`, a custom `field` component (`WorkflowStatusFieldWrapper`) and the `StatusPathInput` from `@sanity-labs/workflow-kit/studio`. Placed first in the field list and attached to the document's default group if any.
-- `assignments` - array of `assignment` objects, placed immediately after `status`. Visible, joins the same default group as `status`. Skipped when `options.injectAssignments === false` or when the document already declares an `assignments` field.
+- `status` - `string` field with an async `initialValue` resolver that returns the first stage slug for the matching `workflowDefinition`, or `undefined` when no workflow targets the document type. Includes `options.workflowDocumentType = documentType.name`, a custom `field` component (`WorkflowStatusFieldWrapper`) and the `StatusPathInput` from `@sanity-labs/workflow-kit/studio`. Placed first in the field list and attached to the document's default group if any.
+- `assignments` - array of `assignment` objects, placed immediately after `status`. Joins the same default group as `status` and is gated by a `field` component (`WorkflowAssignmentsFieldWrapper`) that hides it when no `workflowDefinition` targets the document type. Skipped when `options.injectAssignments === false` or when the document already declares an `assignments` field.
 - `statuses` - hidden, read-only array of `setStatus` objects. The audit trail.
 - `pendingTransitionReason` - hidden `text` field used to carry a transition note into side effects.
 - A composed `validation` function that calls any existing validator and enforces publish-gating: the document can only be published if its current stage or off-ramp has `enablePublishing: true`.
