@@ -20,7 +20,7 @@ export const generateWorkflowStageObject = ({
   notifyUserTypesOptions?: WorkflowListOption[]
 }) =>
   defineType({
-    name: 'workflowStage',
+    name: 'workflow.stage',
     title: 'Workflow Stage',
     type: 'object',
     icon: SignpostBig,
@@ -77,7 +77,7 @@ export const generateWorkflowStageObject = ({
       }),
       defineField({
         name: 'icon',
-        type: 'lucide-icon',
+        type: 'workflow.lucideIcon',
       }),
       defineField({
         name: 'color',
@@ -101,7 +101,7 @@ export const generateWorkflowStageObject = ({
         name: 'taskTemplates',
         title: 'Stage Tasks',
         type: 'array',
-        of: [defineArrayMember({type: 'taskTemplate'})],
+        of: [defineArrayMember({type: 'workflow.taskTemplate'})],
       }),
       defineField({
         name: 'enableCompletionGating',

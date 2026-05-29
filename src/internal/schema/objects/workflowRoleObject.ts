@@ -5,7 +5,7 @@ import {sanitySlugify} from '../utils'
 
 /** @public */
 export const workflowRoleObject = defineType({
-  name: 'workflowRole',
+  name: 'workflow.role',
   title: 'Workflow Role',
   type: 'object',
   icon: Users,

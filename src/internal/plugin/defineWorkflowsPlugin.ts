@@ -3,10 +3,7 @@ import {definePlugin, type SchemaTypeDefinition} from 'sanity'
 import {workflowAuditTrailActionResolver} from '../actions/workflowAuditTrailAction'
 import {createWorkflowAuditInspector} from '../audit/createWorkflowAuditInspector'
 import {workflowDefinitionType} from '../schema/documents/workflowDefinitionType'
-import {workflowsConfigType} from '../schema/documents/workflowsConfigType'
 import {assignmentObject} from '../schema/objects/assignmentObject'
-import {generateTableViewColumnType} from '../schema/objects/generators/tableViewColumnType'
-import {generateTableViewType} from '../schema/objects/generators/tableViewType'
 import {lucideIconType} from '../schema/objects/lucideIconType'
 import {setStatusObject} from '../schema/objects/setStatusObject'
 import {generateTaskTemplateObject} from '../schema/objects/taskTemplateObject'
@@ -35,11 +32,8 @@ function getDefaultWorkflowSchemaTypes(): SchemaTypeDefinition[] {
     generateTaskTemplateObject({}),
     generateWorkflowStageObject({}),
     generateWorkflowOffRampObject({}),
-    generateTableViewColumnType({tableColumns: []}),
-    generateTableViewType({contentTypeOptions: []}),
     assignmentObject,
     workflowDefinitionType,
-    workflowsConfigType,
   ]
 }
 

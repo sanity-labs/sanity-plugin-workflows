@@ -82,7 +82,7 @@ describe('withWorkflow', () => {
     ).resolves.toBe('briefing')
     expect(getClient).toHaveBeenCalledWith({apiVersion: '2026-04-12'})
     expect(fetch).toHaveBeenCalledWith(
-      `*[_type == "workflowDefinition" && documentType == $docType][0].stages[0].slug.current`,
+      `*[_type == "workflow.definition" && documentType == $docType][0].stages[0].slug.current`,
       {docType: 'article'},
     )
   })
@@ -133,7 +133,9 @@ describe('withWorkflow', () => {
   })
 
   it('does not inject into excluded document types (default or custom)', () => {
-    const workflowDefinition = makeDocument('workflowDefinition', [{name: 'title', type: 'string'}])
+    const workflowDefinition = makeDocument('workflow.definition', [
+      {name: 'title', type: 'string'},
+    ])
     const siteSettings = makeDocument('siteSettings', [{name: 'title', type: 'string'}])
 
     const decoratedTypes = withWorkflow({exclude: ['siteSettings']})([

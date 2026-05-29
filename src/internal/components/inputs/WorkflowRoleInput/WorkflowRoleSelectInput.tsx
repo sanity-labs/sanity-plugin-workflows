@@ -4,7 +4,7 @@ import type {StringInputProps, TitledListValue} from 'sanity'
 import {set, unset, useFormValue} from 'sanity'
 
 interface WorkflowRole {
-  _type: 'workflowRole'
+  _type: 'workflow.role'
   label?: string
   slug?: {_type: 'slug'; current?: string}
 }

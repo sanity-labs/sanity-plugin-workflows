@@ -3,7 +3,7 @@ import {defineField, defineType} from 'sanity'
 
 /** @public */
 export const userObject = defineType({
-  name: 'user',
+  name: 'workflow.user',
   title: 'User',
   type: 'object',
   icon: UserIcon,

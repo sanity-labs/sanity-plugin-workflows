@@ -24,7 +24,7 @@ describe('workflow support schema types', () => {
       (field) => field.name === 'userId',
     )
 
-    expect(userObject.name).toBe('user')
+    expect(userObject.name).toBe('workflow.user')
     expect(userObject.type).toBe('object')
     expect(userIdField).toMatchObject({
       name: 'userId',
@@ -35,7 +35,7 @@ describe('workflow support schema types', () => {
 
   it('defines a fallback lucide icon string type', () => {
     expect(lucideIconType).toMatchObject({
-      name: 'lucide-icon',
+      name: 'workflow.lucideIcon',
       title: 'Lucide Icon',
       type: 'string',
     })

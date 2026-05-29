@@ -6,7 +6,7 @@ import {WorkflowAssignmentPreview} from '../../components/previews/WorkflowAssig
 
 /** @public */
 export const assignmentObject = defineType({
-  name: 'assignment',
+  name: 'workflow.assignment',
   title: 'Assignment',
   type: 'object',
   icon: UserRound,

@@ -11,7 +11,7 @@ export const generateTaskTemplateObject = ({
   assignmentTypeOptions?: WorkflowListOption[]
 }) =>
   defineType({
-    name: 'taskTemplate',
+    name: 'workflow.taskTemplate',
     title: 'Task Template',
     type: 'object',
     icon: ClipboardList,

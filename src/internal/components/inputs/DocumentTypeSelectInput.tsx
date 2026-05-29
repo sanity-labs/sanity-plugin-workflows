@@ -4,13 +4,7 @@ import type {StringInputProps} from 'sanity'
 import {set, unset, useSchema} from 'sanity'
 
 const SYSTEM_TYPE_PREFIXES = ['sanity.']
-const EXCLUDED_TYPES = new Set([
-  'workflowDefinition',
-  'workflowsConfig',
-  'tableView',
-  'tableViewColumn',
-  'insertMenuPreview',
-])
+const EXCLUDED_TYPES = new Set(['workflow.definition', 'insertMenuPreview'])
 
 export function DocumentTypeSelectInput(props: StringInputProps) {
   const {onChange, readOnly, value} = props
