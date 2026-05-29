@@ -133,7 +133,9 @@ describe('withWorkflow', () => {
   })
 
   it('does not inject into excluded document types (default or custom)', () => {
-    const workflowDefinition = makeDocument('workflow.definition', [{name: 'title', type: 'string'}])
+    const workflowDefinition = makeDocument('workflow.definition', [
+      {name: 'title', type: 'string'},
+    ])
     const siteSettings = makeDocument('siteSettings', [{name: 'title', type: 'string'}])
 
     const decoratedTypes = withWorkflow({exclude: ['siteSettings']})([
