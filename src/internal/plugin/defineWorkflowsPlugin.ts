@@ -1,4 +1,3 @@
-import {colorInput} from '@sanity/color-input'
 import {definePlugin, type SchemaTypeDefinition} from 'sanity'
 
 import {workflowAuditTrailActionResolver} from '../actions/workflowAuditTrailAction'
@@ -9,6 +8,7 @@ import {lucideIconType} from '../schema/objects/lucideIconType'
 import {setStatusObject} from '../schema/objects/setStatusObject'
 import {generateTaskTemplateObject} from '../schema/objects/taskTemplateObject'
 import {userObject} from '../schema/objects/userObject'
+import {workflowColorSupportTypes, workflowColorType} from '../schema/objects/workflowColorType'
 import {generateWorkflowOffRampObject} from '../schema/objects/workflowOffRampObject'
 import {workflowRoleObject} from '../schema/objects/workflowRoleObject'
 import {generateWorkflowStageObject} from '../schema/objects/workflowStageObject'
@@ -28,6 +28,8 @@ function getDefaultWorkflowSchemaTypes(): SchemaTypeDefinition[] {
   return [
     userObject,
     lucideIconType,
+    ...workflowColorSupportTypes,
+    workflowColorType,
     setStatusObject,
     workflowRoleObject,
     generateTaskTemplateObject({}),
@@ -62,7 +64,6 @@ export const workflowsPlugin = definePlugin<void | WorkflowsPluginOptions>((conf
 
   return {
     name: 'sanity-plugin-workflows',
-    plugins: [colorInput()],
     schema: {
       types: (prev) =>
         mergeWorkflowSchemaTypes(prev, resolvedConfig.schemaTypes, {

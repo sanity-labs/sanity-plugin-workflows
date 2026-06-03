@@ -81,8 +81,7 @@ export const generateWorkflowStageObject = ({
       }),
       defineField({
         name: 'color',
-        type: 'color',
-        options: {disableAlpha: true},
+        type: 'workflow.color',
       }),
       defineField({
         name: 'stageCriteria',
