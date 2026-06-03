@@ -89,9 +89,11 @@
     "watch": "pkg-utils watch --strict"
   },
   "dependencies": {
-    "@sanity-labs/workflow-kit": "^0.3.0",
+    "@sanity-labs/workflow-kit": "^0.4.0",
+    "@sanity/color-input": "^6.0.6",
     "@sanity/icons": "^3.7.4",
-    "lucide-react": "^0.577.0"
+    "lucide-react": "^0.577.0",
+    "sanity-plugin-lucide-icon-picker": "^1.0.3"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",

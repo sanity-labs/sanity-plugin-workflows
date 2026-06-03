@@ -9,6 +9,14 @@ vi.mock('@sanity/icons', () => ({
   UserIcon: () => null,
 }))
 
+vi.mock('sanity-plugin-lucide-icon-picker', () => ({
+  lucideIconType: {
+    name: 'lucide-icon',
+    type: 'string',
+    components: {input: () => null},
+  },
+}))
+
 import {lucideIconType} from './lucideIconType'
 import {userObject} from './userObject'
 
@@ -33,11 +41,12 @@ describe('workflow support schema types', () => {
     })
   })
 
-  it('defines a fallback lucide icon string type', () => {
+  it('defines a lucide icon string type with a picker input', () => {
     expect(lucideIconType).toMatchObject({
       name: 'workflow.lucideIcon',
       title: 'Lucide Icon',
       type: 'string',
     })
+    expect(lucideIconType.components?.input).toBeDefined()
   })
 })

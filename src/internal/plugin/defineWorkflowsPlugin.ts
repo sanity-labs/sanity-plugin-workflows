@@ -1,3 +1,4 @@
+import {colorInput} from '@sanity/color-input'
 import {definePlugin, type SchemaTypeDefinition} from 'sanity'
 
 import {workflowAuditTrailActionResolver} from '../actions/workflowAuditTrailAction'
@@ -61,6 +62,7 @@ export const workflowsPlugin = definePlugin<void | WorkflowsPluginOptions>((conf
 
   return {
     name: 'sanity-plugin-workflows',
+    plugins: [colorInput()],
     schema: {
       types: (prev) =>
         mergeWorkflowSchemaTypes(prev, resolvedConfig.schemaTypes, {
