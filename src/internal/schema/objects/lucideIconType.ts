@@ -1,5 +1,5 @@
-import {lucideIconType as lucideIconPickerType} from 'sanity-plugin-lucide-icon-picker'
 import {defineType} from 'sanity'
+import {lucideIconType as lucideIconPickerType} from 'sanity-plugin-lucide-icon-picker'
 
 /** @public */
 export const lucideIconType = defineType({
