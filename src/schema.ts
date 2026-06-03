@@ -7,6 +7,10 @@ export {
 } from './internal/schema/objects/generators/statusType'
 export {lucideIconType} from './internal/schema/objects/lucideIconType'
 export {setStatusObject} from './internal/schema/objects/setStatusObject'
+export {
+  workflowColorSupportTypes,
+  workflowColorType,
+} from './internal/schema/objects/workflowColorType'
 export {generateTaskTemplateObject} from './internal/schema/objects/taskTemplateObject'
 export {userObject} from './internal/schema/objects/userObject'
 export {generateWorkflowOffRampObject} from './internal/schema/objects/workflowOffRampObject'

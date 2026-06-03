@@ -2,10 +2,11 @@ import {defineMigration, set} from 'sanity/migrate'
 
 /**
  * Convert legacy hex-string `color` values on `workflow.stage` objects into the
- * object shape expected by `@sanity/color-input` (v0.4.0).
+ * namespaced `workflow.color` object shape (reuses the `@sanity/color-input`
+ * field structure but under a collision-free type name).
  *
  * Before: `{ _type: 'workflow.stage', color: '#3B82F6' }`
- * After:  `{ _type: 'workflow.stage', color: { _type: 'color', hex: '#3b82f6', alpha: 1, hsl, hsv, rgb } }`
+ * After:  `{ _type: 'workflow.stage', color: { _type: 'workflow.color', hex: '#3b82f6', alpha: 1, hsl, hsv, rgb } }`
  *
  * To run:
  *   npx sanity migration run color-to-color-input
@@ -126,7 +127,7 @@ function buildColorValue(hex: string) {
   }
 
   return {
-    _type: 'color',
+    _type: 'workflow.color',
     hex: hex.toLowerCase(),
     alpha: 1,
     hsl: rgbToHsl(rgb),
@@ -138,17 +139,25 @@ function buildColorValue(hex: string) {
 export default defineMigration({
   migrate: {
     object(obj) {
-      if (obj._type !== 'workflow.stage' || typeof obj.color !== 'string') {
+      if (obj._type !== 'workflow.stage') {
         return undefined
       }
 
-      const colorValue = buildColorValue(obj.color)
-      if (!colorValue) {
-        return undefined
+      const {color} = obj
+
+      // Legacy hex string (<= v0.3.0): build the full color object.
+      if (typeof color === 'string') {
+        const colorValue = buildColorValue(color)
+        return colorValue ? set({...obj, color: colorValue}) : undefined
       }
 
-      return set({...obj, color: colorValue})
+      // Bare `color` object from the broken v0.4.0: re-namespace to workflow.color.
+      if (color && typeof color === 'object' && (color as {_type?: string})._type === 'color') {
+        return set({...obj, color: {...(color as object), _type: 'workflow.color'}})
+      }
+
+      return undefined
     },
   },
-  title: 'Convert workflow stage color to color-input object',
+  title: 'Convert workflow stage color to workflow.color object',
 })
