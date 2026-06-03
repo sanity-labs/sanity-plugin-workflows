@@ -54,7 +54,7 @@ export const generateWorkflowStageObject = ({
         }
       },
       select: {
-        color: 'color',
+        color: 'color.hex',
         icon: 'icon',
         label: 'label',
       },
@@ -81,9 +81,8 @@ export const generateWorkflowStageObject = ({
       }),
       defineField({
         name: 'color',
-        type: 'string',
-        validation: (rule) =>
-          rule.regex(/^#[0-9A-Fa-f]{6}$/).error('Must be a valid hex color (e.g. #3B82F6)'),
+        type: 'color',
+        options: {disableAlpha: true},
       }),
       defineField({
         name: 'stageCriteria',
