@@ -79,6 +79,7 @@ Decorator that maps over a list of schema types and, for every `type: 'document'
 - `statuses` - hidden, read-only array of `workflow.setStatus` objects. The audit trail.
 - `pendingTransitionReason` - hidden `text` field used to carry a transition note into side effects.
 - A composed `validation` function that calls any existing validator and enforces publish-gating: the document can only be published if its current stage or off-ramp has `enablePublishing: true`.
+- A document-level `input` component that removes the injected `status` and `assignments` members from the form when no `workflow.definition` targets the document type (and while that lookup is still resolving). This filters the fields out before they render, so no empty grid row is left behind. Any `components.input` the document already declares is preserved and rendered with the filtered members. The `WorkflowStatusFieldWrapper` and `WorkflowAssignmentsFieldWrapper` `field` components remain as a safety net for contexts outside the document form (for example the Compare versions tool).
 
 The decorator skips the whole injection on any document that already declares a `status` or `statuses` field. This is the documented escape hatch for domain lifecycles (see `reusableStatusTrackerField` below). The `assignments` check is separate and only suppresses the `assignments` field specifically — a document that declares its own `assignments` still gets the other injected fields.
 

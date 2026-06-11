@@ -121,6 +121,39 @@ describe('withWorkflow', () => {
     ])
   })
 
+  it('injects a document input component that can filter workflow fields', () => {
+    const article = makeDocument('article', [{name: 'title', type: 'string'}])
+
+    const [decorated] = withWorkflow()([article])
+
+    const components = (decorated as {components?: {input?: unknown}}).components
+    expect(components?.input).toEqual(expect.any(Function))
+  })
+
+  it('preserves a document type that already declares its own components', () => {
+    const existingInput = () => null
+    const existingPreview = () => null
+    const article = {
+      ...makeDocument('article', [{name: 'title', type: 'string'}]),
+      components: {input: existingInput, preview: existingPreview},
+    } as SchemaTypeDefinition
+
+    const [decorated] = withWorkflow()([article])
+
+    const components = (decorated as {components?: {input?: unknown; preview?: unknown}}).components
+    expect(components?.preview).toBe(existingPreview)
+    expect(components?.input).toEqual(expect.any(Function))
+    expect(components?.input).not.toBe(existingInput)
+  })
+
+  it('does not add components to excluded document types', () => {
+    const siteSettings = makeDocument('siteSettings', [{name: 'title', type: 'string'}])
+
+    const [decorated] = withWorkflow({exclude: ['siteSettings']})([siteSettings])
+
+    expect((decorated as {components?: unknown}).components).toBeUndefined()
+  })
+
   it('suppresses the assignments injection when injectAssignments is false', () => {
     const article = makeDocument('article', [{name: 'title', type: 'string'}])
 

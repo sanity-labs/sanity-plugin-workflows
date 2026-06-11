@@ -1,8 +1,10 @@
 import {StatusPathInput, type StatusPathOptions} from '@sanity-labs/workflow-kit/studio'
+import type {ComponentType} from 'react'
 import {
   defineArrayMember,
   defineField,
   type InitialValueResolverContext,
+  type ObjectInputProps,
   type Rule,
   type SchemaTypeDefinition,
   type ValidationContext,
@@ -10,6 +12,7 @@ import {
 
 import {WorkflowAssignmentsFieldWrapper} from '../components/fields/Assignments/WorkflowAssignmentsFieldWrapper'
 import {WorkflowStatusFieldWrapper} from '../components/fields/SetStatus/WorkflowStatusFieldWrapper'
+import {createWorkflowDocumentInput} from '../components/inputs/WorkflowDocumentInput'
 import {getWorkflowsApiVersion} from '../plugin/constants'
 
 const DEFAULT_EXCLUDE = ['workflow.definition']
@@ -164,10 +167,23 @@ export function withWorkflow(options: WithWorkflowOptions = {}): SchemaDecorator
           }
         : publishGatingRule
 
+      const existingComponents = (
+        documentType as {
+          components?: {input?: ComponentType<ObjectInputProps>}
+        }
+      ).components
+
       return {
         ...documentType,
         groups: [...existingGroups],
         validation: composedValidation,
+        components: {
+          ...existingComponents,
+          input: createWorkflowDocumentInput({
+            fieldNames: ['status', ...(assignmentsField ? ['assignments'] : [])],
+            existingInput: existingComponents?.input,
+          }),
+        },
         fields: [
           statusField,
           ...(assignmentsField ? [assignmentsField] : []),
