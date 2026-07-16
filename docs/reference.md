@@ -75,7 +75,7 @@ withWorkflow(options?: {
 Decorator that maps over a list of schema types and, for every `type: 'document'` that isn't excluded, injects:
 
 - `status` - `string` field with an async `initialValue` resolver that returns the first stage slug for the matching `workflow.definition`, or `undefined` when no workflow targets the document type. Includes `options.workflowDocumentType = documentType.name`, a custom `field` component (`WorkflowStatusFieldWrapper`) and the `StatusPathInput` from `@sanity-labs/workflow-kit/studio`. Placed first in the field list and attached to the document's default group if any.
-- `assignments` - array of `workflow.assignment` objects, placed immediately after `status`. Joins the same default group as `status` and is gated by a `field` component (`WorkflowAssignmentsFieldWrapper`) that hides it when no `workflow.definition` targets the document type. Skipped when `options.injectAssignments === false` or when the document already declares an `assignments` field.
+- `assignments` - array of `workflow.assignment` objects, placed immediately after `status`. Joins the same default group as `status` and is gated by a `field` component (`WorkflowAssignmentsFieldWrapper`) that hides it when no `workflow.definition` targets the document type, and calls `ensureWorkflowStageTasks` when assignment user ids appear so current-stage task templates can be created without publishing. Skipped when `options.injectAssignments === false` or when the document already declares an `assignments` field.
 - `statuses` - hidden, read-only array of `workflow.setStatus` objects. The audit trail.
 - `pendingTransitionReason` - hidden `text` field used to carry a transition note into side effects.
 - A composed `validation` function that calls any existing validator and enforces publish-gating: the document can only be published if its current stage or off-ramp has `enablePublishing: true`.
@@ -261,7 +261,7 @@ import {
 
 The composite resolver the plugin mounts by default. In order:
 
-1. Wraps the built-in `publish` action so that when publish succeeds it appends a `workflow.setStatus` entry (via `appendStatusAuditEntry`) and creates any task templates attached to the current stage (via `createTasksForWorkflowTemplates` with `skipIfTasksExist: true`). Skips if the document type has no `status` field.
+1. Wraps the built-in `publish` action so that when publish succeeds it appends a `workflow.setStatus` entry (via `appendStatusAuditEntry`) and best-effort ensures current-stage tasks (via `ensureWorkflowStageTasks`). This is **not** the primary first-stage task path — publishing is often gated until a later stage. Role-bound tasks are created when `assignments[]` gain user ids (see `WorkflowAssignmentsFieldWrapper`) or when consumers call `ensureWorkflowStageTasks`. Skips if the document type has no `status` field.
 2. Runs `workflowOffRampDocumentActionsResolver` to insert up to 10 off-ramp slot actions after the publish action.
 3. Runs `workflowTransitionActionResolver` to replace the publish action label with "Move to _next stage_" and attach the confirm/gated dialog flow.
 

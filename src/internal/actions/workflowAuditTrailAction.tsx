@@ -1,8 +1,7 @@
 import {
   appendStatusAuditEntry,
-  createTasksForWorkflowTemplates,
+  ensureWorkflowStageTasks,
   fetchWorkflowDefinition,
-  findWorkflowTransitionTarget,
   shouldSkipPublishAuditEntry,
   stripDraftsPrefix,
   type WorkflowTransitionDocument,
@@ -100,7 +99,6 @@ function createAuditTrailPublishAction(
         }
 
         const workflowDocument = draft as WorkflowTransitionDocument
-        const targetStage = findWorkflowTransitionTarget(workflowDefinition, draftStatus)
 
         if (!shouldSkipPublishAuditEntry(workflowDocument.statuses, draftStatus)) {
           try {
@@ -118,21 +116,21 @@ function createAuditTrailPublishAction(
           }
         }
 
-        if (targetStage?.taskTemplates?.length) {
-          try {
-            await createTasksForWorkflowTemplates({
-              client,
-              currentUserId: currentUser.id,
-              document: workflowDocument,
-              documentId: publishedId,
-              documentType,
-              logPrefix: '[workflowAuditTrailAction]',
-              skipIfTasksExist: true,
-              templates: targetStage.taskTemplates,
-            })
-          } catch (error) {
-            console.error('[workflowAuditTrailAction] Task creation safety net failed:', error)
-          }
+        // Best-effort only: stages may gate publishing, so first-stage tasks are
+        // primarily ensured when assignments become ready (assignments field wrapper).
+        try {
+          await ensureWorkflowStageTasks({
+            client,
+            currentUserId: currentUser.id,
+            document: workflowDocument,
+            documentId: publishedId,
+            documentType,
+            logPrefix: '[workflowAuditTrailAction]',
+            statusSlug: draftStatus,
+            workflowDefinition,
+          })
+        } catch (error) {
+          console.error('[workflowAuditTrailAction] Task ensure safety net failed:', error)
         }
       },
     }
