@@ -23,7 +23,7 @@ The simplest working setup is one line of config (`plugins: [workflowsPlugin()]`
 | Stage                | A step on the happy path (e.g. `draft` → `in_review` → `approved`). Each stage has a label, icon, color, and optional tasks and gating rules.                                                                                                                                                |
 | Off-ramp             | A terminal/abandoned state that isn't part of the forward path (e.g. `spiked`, `archived`). Can unpublish the document on entry.                                                                                                                                                             |
 | Role                 | A workflow role (e.g. Reporter, Section Editor) authored inside the `workflow.definition` document. Each role maps to one or more Sanity project roles via `workflow.role.projectRoles[]`; the plugin uses that mapping to resolve which Sanity users count as which workflow role at runtime. |
-| Task template        | A task that's auto-created on stage entry, with an assignee role and due date. Tasks live in the `-comments` addon dataset.                                                                                                                                                                  |
+| Task template        | A task auto-created for a stage (on stage entry, or when assignments become ready for the current stage). Role-bound templates wait until `assignments[]` resolve an assignee — they are not created as floating unassigned tasks. Tasks live in the `-comments` addon dataset.              |
 | Completion gating    | If on, a stage can't be left until its required tasks are closed. Roles listed in `gatingOverrideRoles` can override.                                                                                                                                                                        |
 | Publish gating       | Documents can only be published when the current stage has `enablePublishing: true`. Enforced by a custom validator.                                                                                                                                                                         |
 | Audit trail          | Every transition appends a `workflow.setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                                                                                                                                                                       |
@@ -200,6 +200,8 @@ For the schema-level details behind this mapping, see [`workflow.role.projectRol
 ### Track team assignments on content documents
 
 Every workflow-aware document gets an `assignments` array field injected automatically. No schema edit required. Each entry captures a workflow role (auto-populated from `workflow.definition.roles[]`) and the Sanity user id assigned to it — so editors can record who's the reporter on this article, who's the section editor, and so on, with the picker always in sync with the current workflow definition.
+
+When assignment user ids are set, the field wrapper calls `ensureWorkflowStageTasks` for the document’s current stage. That is the primary path for first-stage tasks: many workflows gate publishing until a later stage, so publish cannot be relied on to create them. Templates with an `assigneeRole` are deferred until that role’s assignee is known.
 
 #### Opt out or customize
 
