@@ -3,12 +3,7 @@ import {
   type WorkflowAssignmentValue,
 } from '@sanity-labs/workflow-kit/engine'
 import {Activity, useEffect, useRef} from 'react'
-import {
-  type ArrayFieldProps,
-  useClient,
-  useCurrentUser,
-  useFormValue,
-} from 'sanity'
+import {type ArrayFieldProps, useClient, useCurrentUser, useFormValue} from 'sanity'
 
 import {useHasWorkflow} from '../../../audit/useHasWorkflow'
 import {getWorkflowsApiVersion} from '../../../plugin/constants'
