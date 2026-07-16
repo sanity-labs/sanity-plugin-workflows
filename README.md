@@ -54,7 +54,18 @@ pnpm add @sanity-labs/sanity-plugin-workflows @sanity-labs/workflow-kit
 
 > `@sanity-labs/workflow-kit` is a peer of this package — you need it in your project even if you never import from it directly.
 
-### 2. Register the plugin
+### 2. Initialise the comments / tasks addon dataset
+
+Workflow tasks (and completion gating) live in Sanity’s **comments addon dataset** (`<your-dataset>-comments`). Creating that dataset with the CLI is not enough — Sanity has to initialise it as a comments/tasks addon.
+
+Do this once per content dataset before you rely on stage tasks:
+
+1. Open Studio against that dataset.
+2. Open any document and use the built-in UI to **add a comment** and/or **create a task**.
+
+That first comment/task is what provisions the addon dataset correctly. If it was never initialised, workflow task creation and gating silently no-op and the Studio console warns you to do this.
+
+### 3. Register the plugin
 
 ```ts
 // sanity.config.ts
@@ -81,7 +92,7 @@ With zero options, the plugin:
 - Applies the `withWorkflow()` decorator to all document types except the plugin's own `workflow.definition` documents, injecting `status`, an `assignments` array, `statuses` (audit trail), and `pendingTransitionReason` fields plus a publish-gating validator.
 - Registers the audit-trail publish action wrapper and the **Audit Trail** inspector.
 
-### 3. Author a workflow.definition in Studio
+### 4. Author a workflow.definition in Studio
 
 Start Studio (`sanity dev`), open the new **Workflow Definition** document type, and create one:
 
@@ -92,7 +103,7 @@ Start Studio (`sanity dev`), open the new **Workflow Definition** document type,
 
 ![Studio: a workflow document with 5 stages and 2 roles applied](https://raw.githubusercontent.com/sanity-labs/sanity-plugin-workflows/main/docs/media/workflows-plugin-document-screenshot.avif)
 
-### 4. See the transition action appear
+### 5. See the transition action appear
 
 Open any document of the target type. You should now see:
 
@@ -102,7 +113,7 @@ Open any document of the target type. You should now see:
 
 ![Studio: document actions to move to the next stage of a workflow, including role gating](https://raw.githubusercontent.com/sanity-labs/sanity-plugin-workflows/main/docs/media/workflows-plugin-gated-screenshot.avif)
 
-### 5. Move through stages
+### 6. Move through stages
 
 Click **Move to _next stage_**. If the stage has task templates or stage guidance, you'll see a confirmation dialog. Confirm, and the document's `status` is patched, tasks are created in the `-comments` addon dataset, and a new entry appears in the audit trail.
 
@@ -484,6 +495,10 @@ The publish-gating validator only allows publish on stages/off-ramps where `enab
 **The transition dialog opens straight to the "open tasks remaining" view.**
 
 The current stage has `enableCompletionGating: true` and there are open required tasks in the `-comments` addon dataset. Close the tasks, or add a role to `gatingOverrideRoles` on the stage so gating-privileged users can override.
+
+**Stage tasks never appear / console warns about a missing `*-comments` dataset.**
+
+Task templates and completion gating need Sanity’s comments/tasks addon dataset. Initialise it from Studio (not the CLI): open any document and **add a comment** or **create a task** once. That provisions `<your-dataset>-comments` correctly. Then retry the transition or assignment-ready ensure.
 
 **Types drift after editing a schema.**
 
