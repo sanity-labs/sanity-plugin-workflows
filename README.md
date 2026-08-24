@@ -49,10 +49,15 @@ About 5 minutes from `pnpm install` to your first transition.
 ### 1. Install
 
 ```sh
-pnpm add @sanity-labs/sanity-plugin-workflows @sanity-labs/workflow-kit
+pnpm add @sanity-labs/sanity-plugin-workflows
 ```
 
-> `@sanity-labs/workflow-kit` is a peer of this package — you need it in your project even if you never import from it directly.
+The plugin installs `@sanity-labs/workflow-kit` transitively. Add workflow-kit directly
+only when your Studio or frontend imports its public entrypoints.
+
+The plugin supports Sanity Studio 5 and 6, React 19.2, `@sanity/ui` 3 and 4, and
+`styled-components` 6. Use Node.js 20.19 or newer with Studio 5. Studio 6 itself
+requires Node.js 22.12 or newer.
 
 ### 2. Initialise the comments / tasks addon dataset
 
@@ -530,8 +535,14 @@ pnpm build        # pkg-utils build with strict checks
 pnpm typecheck    # tsgo --noEmit
 pnpm lint         # oxlint
 pnpm test         # vitest run
+pnpm smoke:compat # build packed workflow-kit and plugin artifacts in a clean Studio
 pnpm link-watch   # plugin-kit link-watch (develop against a local Studio)
 ```
+
+For compatibility releases, publish the workflow-kit changeset first. Verify its packed
+artifact in Sanetti, then publish the plugin changeset and repeat the Sanetti build with
+the released versions. The CI compatibility matrix covers Studio 5, Studio 6.2, and the
+current Studio 6/Vite 8 release without Sanetti dependency overrides.
 
 ## License
 

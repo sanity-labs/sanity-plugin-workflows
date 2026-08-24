@@ -1,4 +1,4 @@
-import {Avatar, Card, Flex, Stack, Text, Tooltip} from '@sanity/ui'
+import {Avatar, Card, Flex, Stack, Text} from '@sanity/ui'
 
 import type {WorkflowStatusEntry} from './types'
 
@@ -42,11 +42,9 @@ export function AuditEntry({
     <Card padding={2} radius={2} tone={index === 0 ? 'transparent' : 'default'}>
       <Flex align="center" gap={3}>
         <span aria-label={userName} title={userName} style={{display: 'flex', flexShrink: 0}}>
-          <Tooltip content={<Text size={1}>{userName}</Text>} animate delay={300}>
-            <Avatar src={avatarUrl} size={2} style={{borderRadius: '9999px'}} />
-          </Tooltip>
+          <Avatar src={avatarUrl} size={2} style={{borderRadius: '9999px'}} />
         </span>
-        <Stack space={2}>
+        <Stack gap={2}>
           <Text size={1} weight="medium">{`Moved to ${statusLabel}`}</Text>
           <Text muted size={1}>
             {formatUtcTimestamp(entry.completedAt)}

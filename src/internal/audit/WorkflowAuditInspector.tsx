@@ -25,16 +25,21 @@ export function WorkflowAuditInspector({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
     const query = `*[_id == $id || _id == $draftId][0].statuses`
     const params = {id: documentId, draftId: `drafts.${documentId}`}
+    setLoading(true)
 
-    client
+    void client
       .fetch<WorkflowStatusEntry[] | null>(query, params)
       .then((result) => {
+        if (cancelled) return
         setStatuses(result ?? undefined)
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => {
+        if (!cancelled) setLoading(false)
+      })
 
     const subscription = client
       .listen<Record<string, unknown>>(`*[_id == $id || _id == $draftId]`, params, {
@@ -46,7 +51,10 @@ export function WorkflowAuditInspector({
         }
       })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
   }, [client, documentId])
 
   const sortedStatuses = useMemo(
@@ -87,7 +95,7 @@ export function WorkflowAuditInspector({
 
   return (
     <Stack
-      space={0}
+      gap={0}
       style={{
         display: 'flex',
         flex: 1,
@@ -122,7 +130,7 @@ export function WorkflowAuditInspector({
             </Flex>
           </Card>
         ) : (
-          <Stack space={1}>
+          <Stack gap={1}>
             {sortedStatuses.map((entry, index) => {
               const userLookupValue =
                 entry.completedBy?.userId ?? entry.completedBy?.id ?? entry.completedBy?.email

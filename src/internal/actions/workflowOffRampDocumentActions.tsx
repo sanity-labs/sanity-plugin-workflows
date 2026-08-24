@@ -11,7 +11,7 @@ import {
 import {WorkflowTransitionOffRampDialogContent} from '@sanity-labs/workflow-kit/react'
 import {useWorkflowProjectUsers} from '@sanity-labs/workflow-kit/studio'
 import {ArrowRightIcon} from '@sanity/icons'
-import {useToast} from '@sanity/ui'
+import {Card, Stack, Text} from '@sanity/ui'
 import * as LucideIcons from 'lucide-react'
 import {useCallback, useEffect, useMemo, useState, type ComponentType, type SVGProps} from 'react'
 import {
@@ -145,10 +145,10 @@ export function createWorkflowOffRampSlotAction(
     const client = useClient({apiVersion: getWorkflowsApiVersion()})
     const currentUser = useCurrentUser()
     const schema = useSchema()
-    const toast = useToast()
     const {aclData, loaded: workflowUsersLoaded, projectUsers} = useWorkflowProjectUsers(client)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
+    const [transitionError, setTransitionError] = useState<string | null>(null)
     const [workflowDefinition, setWorkflowDefinition] = useState<
       null | undefined | WorkflowDefinition
     >(undefined)
@@ -210,6 +210,7 @@ export function createWorkflowOffRampSlotAction(
 
     const closeDialog = useCallback(() => {
       setDialogOpen(false)
+      setTransitionError(null)
     }, [])
 
     const handleConfirm = useCallback(
@@ -226,6 +227,7 @@ export function createWorkflowOffRampSlotAction(
         }
 
         setIsTransitioning(true)
+        setTransitionError(null)
 
         try {
           await performWorkflowTransition({
@@ -248,13 +250,6 @@ export function createWorkflowOffRampSlotAction(
             shouldUnpublish: Boolean(offRamp.unpublishOnEntry),
           })
 
-          toast.push({
-            description: offRamp.unpublishOnEntry
-              ? 'The document was moved to the selected off-ramp and unpublished from live surfaces.'
-              : 'The document was moved to the selected off-ramp.',
-            status: 'success',
-            title: `Moved to ${stageTitle}`,
-          })
           closeDialog()
           onComplete()
         } catch (error) {
@@ -262,14 +257,11 @@ export function createWorkflowOffRampSlotAction(
             '[workflowOffRampDocumentAction] Failed to move document to off-ramp:',
             error,
           )
-          toast.push({
-            description:
-              error instanceof Error
-                ? error.message
-                : 'Could not move this document to the selected off-ramp.',
-            status: 'error',
-            title: 'Off-ramp transition failed',
-          })
+          setTransitionError(
+            error instanceof Error
+              ? error.message
+              : 'Could not move this document to the selected off-ramp.',
+          )
         } finally {
           setIsTransitioning(false)
         }
@@ -284,8 +276,6 @@ export function createWorkflowOffRampSlotAction(
         onComplete,
         patchDocumentId,
         publishedId,
-        stageTitle,
-        toast,
         workflowDefinition,
       ],
     )
@@ -365,14 +355,21 @@ export function createWorkflowOffRampSlotAction(
       dialog: dialogOpen
         ? {
             content: (
-              <WorkflowTransitionOffRampDialogContent
-                criteria={offRamp.stageCriteria}
-                isSubmitting={isTransitioning}
-                onCancel={closeDialog}
-                onConfirm={handleConfirm}
-                stageTitle={stageTitle}
-                unpublishOnEntry={Boolean(offRamp.unpublishOnEntry)}
-              />
+              <Stack gap={3}>
+                {transitionError ? (
+                  <Card border marginX={4} marginTop={4} padding={3} radius={2} tone="critical">
+                    <Text size={1}>{transitionError}</Text>
+                  </Card>
+                ) : null}
+                <WorkflowTransitionOffRampDialogContent
+                  criteria={offRamp.stageCriteria}
+                  isSubmitting={isTransitioning}
+                  onCancel={closeDialog}
+                  onConfirm={handleConfirm}
+                  stageTitle={stageTitle}
+                  unpublishOnEntry={Boolean(offRamp.unpublishOnEntry)}
+                />
+              </Stack>
             ),
             header: stageTitle,
             onClose: closeDialog,

@@ -23,7 +23,7 @@ import {
 } from '@sanity-labs/workflow-kit/react'
 import {buildTaskViewPath, useWorkflowProjectUsers} from '@sanity-labs/workflow-kit/studio'
 import {ArrowRightIcon} from '@sanity/icons'
-import {useToast} from '@sanity/ui'
+import {Card, Text} from '@sanity/ui'
 import * as LucideIcons from 'lucide-react'
 import {useCallback, useEffect, useMemo, useState, type ComponentType, type SVGProps} from 'react'
 import {
@@ -120,7 +120,6 @@ export function createWorkflowTransitionAction(
     const client = useClient({apiVersion: getWorkflowsApiVersion()})
     const currentUser = useCurrentUser()
     const router = useRouter()
-    const toast = useToast()
     const {aclData, projectUsers} = useWorkflowProjectUsers(client)
     const originalResult = originalPublishAction(props)
     const hasPublishActionResult = Boolean(originalResult)
@@ -128,7 +127,8 @@ export function createWorkflowTransitionAction(
     const [workflowDefinition, setWorkflowDefinition] = useState<
       null | undefined | WorkflowDefinition
     >(undefined)
-    const [modalType, setModalType] = useState<'confirm' | 'gated' | null>(null)
+    const [modalType, setModalType] = useState<'confirm' | 'error' | 'gated' | null>(null)
+    const [transitionError, setTransitionError] = useState<string | null>(null)
     const [pendingStage, setPendingStage] = useState<null | WorkflowTransitionStage>(null)
     const [pendingSourceStageName, setPendingSourceStageName] = useState('')
     const [gatedTasks, setGatedTasks] = useState<WorkflowTransitionTaskRow[]>([])
@@ -234,6 +234,7 @@ export function createWorkflowTransitionAction(
 
     const closeDialog = useCallback(() => {
       setModalType(null)
+      setTransitionError(null)
       setPendingStage(null)
       setPendingSourceStageName('')
       setGatedTasks([])
@@ -294,24 +295,16 @@ export function createWorkflowTransitionAction(
             workflowDefinition,
           })
 
-          toast.push({
-            description:
-              'The document status was advanced and any stage tasks were created automatically.',
-            status: 'success',
-            title: `Moved to ${targetStage.label || targetStage.slug}`,
-          })
           closeDialog()
           onComplete()
         } catch (error) {
           console.error('[workflowTransitionAction] Failed to move document to next stage:', error)
-          toast.push({
-            description:
-              error instanceof Error
-                ? error.message
-                : 'Could not move this document to the next workflow stage.',
-            status: 'error',
-            title: 'Transition failed',
-          })
+          setTransitionError(
+            error instanceof Error
+              ? error.message
+              : 'Could not move this document to the next workflow stage.',
+          )
+          setModalType('error')
         } finally {
           setIsTransitioning(false)
         }
@@ -323,7 +316,6 @@ export function createWorkflowTransitionAction(
         docSnapshot,
         patchDocumentId,
         onComplete,
-        toast,
         workflowDefinition,
       ],
     )
@@ -414,51 +406,62 @@ export function createWorkflowTransitionAction(
     )
 
     const actionDialog =
-      modalType === 'gated' && pendingStage
+      modalType === 'error' && transitionError
         ? {
             content: (
-              <WorkflowTransitionGatedDialogContent
-                currentUserCanOverride={currentUserCanOverride}
-                isSubmitting={isTransitioning}
-                onCancel={closeDialog}
-                onConfirm={handleGatedDialogConfirm}
-                onViewTask={(taskId) => {
-                  const path = buildTaskViewPath(taskId)
-                  if (path) router.navigateUrl({path})
-                }}
-                sourceStageName={pendingSourceStageName}
-                targetStageTitle={pendingStage.label || pendingStage.slug || 'Next stage'}
-                tasks={gatedTasks}
-                users={projectUsers.map((user) => ({
-                  displayName: user.displayName,
-                  id: user.id,
-                  imageUrl: user.imageUrl,
-                }))}
-              />
+              <Card border padding={4} radius={2} tone="critical">
+                <Text size={1}>{transitionError}</Text>
+              </Card>
             ),
-            header: currentUserCanOverride
-              ? `Move to ${pendingStage.label || pendingStage.slug}`
-              : "Can't advance - open tasks remaining",
+            header: 'Transition failed',
             onClose: closeDialog,
             type: 'dialog' as const,
           }
-        : modalType === 'confirm' && pendingStage
+        : modalType === 'gated' && pendingStage
           ? {
               content: (
-                <WorkflowTransitionConfirmDialogContent
-                  criteria={pendingStage.stageCriteria}
+                <WorkflowTransitionGatedDialogContent
+                  currentUserCanOverride={currentUserCanOverride}
                   isSubmitting={isTransitioning}
                   onCancel={closeDialog}
-                  onConfirm={handleConfirmDialogConfirm}
-                  stageTitle={pendingStage.label || pendingStage.slug || 'Next stage'}
-                  taskTemplates={confirmTaskTemplates}
+                  onConfirm={handleGatedDialogConfirm}
+                  onViewTask={(taskId) => {
+                    const path = buildTaskViewPath(taskId)
+                    if (path) router.navigateUrl({path})
+                  }}
+                  sourceStageName={pendingSourceStageName}
+                  targetStageTitle={pendingStage.label || pendingStage.slug || 'Next stage'}
+                  tasks={gatedTasks}
+                  users={projectUsers.map((user) => ({
+                    displayName: user.displayName,
+                    id: user.id,
+                    imageUrl: user.imageUrl,
+                  }))}
                 />
               ),
-              header: `Move to ${pendingStage.label || pendingStage.slug}`,
+              header: currentUserCanOverride
+                ? `Move to ${pendingStage.label || pendingStage.slug}`
+                : "Can't advance - open tasks remaining",
               onClose: closeDialog,
               type: 'dialog' as const,
             }
-          : null
+          : modalType === 'confirm' && pendingStage
+            ? {
+                content: (
+                  <WorkflowTransitionConfirmDialogContent
+                    criteria={pendingStage.stageCriteria}
+                    isSubmitting={isTransitioning}
+                    onCancel={closeDialog}
+                    onConfirm={handleConfirmDialogConfirm}
+                    stageTitle={pendingStage.label || pendingStage.slug || 'Next stage'}
+                    taskTemplates={confirmTaskTemplates}
+                  />
+                ),
+                header: `Move to ${pendingStage.label || pendingStage.slug}`,
+                onClose: closeDialog,
+                type: 'dialog' as const,
+              }
+            : null
 
     if (originalResult && workflowDefinition === undefined && docSnapshot && patchDocumentId) {
       return {

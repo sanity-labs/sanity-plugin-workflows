@@ -62,7 +62,7 @@ export function WorkflowAssignmentTypeInput(props: StringInputProps) {
 
   if (!loaded) {
     return (
-      <Stack space={2}>
+      <Stack gap={2}>
         <Skeleton animated radius={1} style={{height: 35}} />
       </Stack>
     )
@@ -73,7 +73,7 @@ export function WorkflowAssignmentTypeInput(props: StringInputProps) {
   }
 
   return (
-    <Stack space={2}>
+    <Stack gap={2}>
       <Select
         value={value || ''}
         onChange={handleChange}
