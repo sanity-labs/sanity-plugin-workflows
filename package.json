@@ -90,10 +90,10 @@
     "watch": "pkg-utils watch --strict"
   },
   "dependencies": {
-    "@sanity-labs/workflow-kit": "^0.5.1 || ^0.6.0",
+    "@sanity-labs/workflow-kit": "^0.6.0",
     "@sanity/color-input": "^6.0.6",
     "@sanity/icons": "^3.7.4",
-    "@sanity/ui": "^4.0.0",
+    "@sanity/ui": "^4.0.1",
     "lucide-react": "^0.577.0"
   },
   "devDependencies": {
@@ -109,14 +109,14 @@
     "oxlint": "^1.56.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "sanity": "^6.2.0",
+    "sanity": "^6.9.2",
     "styled-components": "^6.4.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.4"
   },
   "peerDependencies": {
     "react": "^19.2",
-    "sanity": ">=5 <7",
+    "sanity": "^6.9.2",
     "styled-components": "^6"
   },
   "browserslist": [

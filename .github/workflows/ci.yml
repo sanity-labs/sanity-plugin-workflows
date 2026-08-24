@@ -35,18 +35,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: 5
+          - name: 6.9.2
             node: 22.12.0
-            sanity: 5.31.1
-            sanityUi: ^4.0.0
-          - name: 6.2
-            node: 22.12.0
-            sanity: 6.2.0
-            sanityUi: ^4.0.0
+            sanity: 6.9.2
+            sanityUi: 4.0.1
           - name: current-6
             node: 24.14.0
-            sanity: ^6.0.0
-            sanityUi: ^4.0.0
+            sanity: ^6.9.2
+            sanityUi: ^4.0.1
     steps:
       - uses: actions/checkout@v6
         with:

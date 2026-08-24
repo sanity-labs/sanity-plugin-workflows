@@ -8,8 +8,8 @@ const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)))
 const workflowKitRoot = resolve(
   process.env.WORKFLOW_KIT_ROOT || join(packageRoot, '../workflow-kit'),
 )
-const sanityVersion = process.env.SANITY_VERSION || '^6.0.0'
-const sanityUiVersion = process.env.SANITY_UI_VERSION || '^4.0.0'
+const sanityVersion = process.env.SANITY_VERSION || '^6.9.2'
+const sanityUiVersion = process.env.SANITY_UI_VERSION || '^4.0.1'
 const smokeRoot = mkdtempSync(join(tmpdir(), 'workflows-plugin-smoke-'))
 const tarballRoot = join(smokeRoot, 'packages')
 
