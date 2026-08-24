@@ -64,7 +64,7 @@ export function WorkflowRoleCheckboxInput(props: ArrayOfPrimitivesInputProps) {
   }
 
   return (
-    <Grid columns={[2, 3]} gap={2}>
+    <Grid gridTemplateColumns={[2, 3]} gap={2}>
       {options.map((option) => (
         <Flex align="center" gap={2} key={option.value}>
           <Checkbox

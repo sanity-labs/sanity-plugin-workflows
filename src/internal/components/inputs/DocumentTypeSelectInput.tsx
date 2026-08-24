@@ -48,7 +48,7 @@ export function DocumentTypeSelectInput(props: StringInputProps) {
   }
 
   return (
-    <Stack space={2}>
+    <Stack gap={2}>
       <Select
         value={value || ''}
         onChange={handleChange}

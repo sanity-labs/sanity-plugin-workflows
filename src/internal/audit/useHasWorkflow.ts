@@ -9,12 +9,21 @@ export function useHasWorkflow(documentType: string): boolean | null {
   const [hasWorkflow, setHasWorkflow] = useState<boolean | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     const query = `*[_type == "workflow.definition" && documentType == $docType][0]._id`
 
-    client
+    void client
       .fetch<string | null>(query, {docType: documentType})
-      .then((id) => setHasWorkflow(id !== null))
-      .catch(() => setHasWorkflow(false))
+      .then((id) => {
+        if (!cancelled) setHasWorkflow(id !== null)
+      })
+      .catch(() => {
+        if (!cancelled) setHasWorkflow(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [client, documentType])
 
   return hasWorkflow

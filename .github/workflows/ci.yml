@@ -27,3 +27,47 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm build
       - run: pnpm run --if-present test
+
+  compatibility:
+    name: Sanity ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 6.9.2
+            node: 22.12.0
+            sanity: 6.9.2
+            sanityUi: 4.0.1
+          - name: current-6
+            node: 24.14.0
+            sanity: ^6.9.2
+            sanityUi: ^4.0.1
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: workflows
+      - uses: actions/checkout@v6
+        with:
+          repository: sanity-labs/workflow-kit
+          path: workflow-kit
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+          cache-dependency-path: |
+            workflows/pnpm-lock.yaml
+            workflow-kit/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: workflow-kit
+      - run: pnpm install --frozen-lockfile
+        working-directory: workflows
+      - run: pnpm smoke:compat
+        working-directory: workflows
+        env:
+          SANITY_VERSION: ${{ matrix.sanity }}
+          SANITY_UI_VERSION: ${{ matrix.sanityUi }}
+          WORKFLOW_KIT_ROOT: ../workflow-kit

@@ -87,6 +87,40 @@ describe('withWorkflow', () => {
     )
   })
 
+  it('blocks publish until the current stage enables publishing', async () => {
+    const article = makeDocument('article', [{name: 'title', type: 'string'}])
+    const [decorated] = withWorkflow()([article])
+    const validation = (decorated as {validation?: (rule: unknown) => unknown}).validation
+    const custom = vi.fn((validator: unknown) => validator)
+    const rule = {custom}
+    const fetch = vi.fn().mockResolvedValue({
+      stages: [
+        {enablePublishing: false, statusSlug: 'draft'},
+        {enablePublishing: true, statusSlug: 'approved'},
+      ],
+    })
+    const getClient = vi.fn(() => ({fetch}))
+
+    const validator = validation?.(rule) as (
+      value: unknown,
+      context: {document: {_type: string; status: string}; getClient: typeof getClient},
+    ) => Promise<true | string>
+
+    await expect(
+      validator(undefined, {
+        document: {_type: 'article', status: 'draft'},
+        getClient,
+      }),
+    ).resolves.toBe('Cannot publish - document must reach "approved" stage first.')
+
+    await expect(
+      validator(undefined, {
+        document: {_type: 'article', status: 'approved'},
+        getClient,
+      }),
+    ).resolves.toBe(true)
+  })
+
   it('gates the injected assignments field with a visibility wrapper', () => {
     const article = makeDocument('article', [{name: 'title', type: 'string'}])
 

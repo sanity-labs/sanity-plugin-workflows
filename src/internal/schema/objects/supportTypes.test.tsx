@@ -9,14 +9,6 @@ vi.mock('@sanity/icons', () => ({
   UserIcon: () => null,
 }))
 
-vi.mock('sanity-plugin-lucide-icon-picker', () => ({
-  lucideIconType: {
-    name: 'lucide-icon',
-    type: 'string',
-    components: {input: () => null},
-  },
-}))
-
 import {lucideIconType} from './lucideIconType'
 import {userObject} from './userObject'
 

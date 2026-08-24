@@ -44,7 +44,7 @@ export function WorkflowRoleSelectInput(props: StringInputProps) {
 
   if (options.length === 0) {
     return (
-      <Stack space={2}>
+      <Stack gap={2}>
         <Text size={1} muted>
           Add roles to this workflow definition first.
         </Text>
@@ -53,7 +53,7 @@ export function WorkflowRoleSelectInput(props: StringInputProps) {
   }
 
   return (
-    <Stack space={2}>
+    <Stack gap={2}>
       <Select
         value={value || ''}
         onChange={handleChange}

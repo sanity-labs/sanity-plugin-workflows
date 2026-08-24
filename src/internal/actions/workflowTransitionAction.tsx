@@ -23,7 +23,7 @@ import {
 } from '@sanity-labs/workflow-kit/react'
 import {buildTaskViewPath, useWorkflowProjectUsers} from '@sanity-labs/workflow-kit/studio'
 import {ArrowRightIcon} from '@sanity/icons'
-import {useToast} from '@sanity/ui'
+import {useToast} from '@sanity/ui/toast'
 import * as LucideIcons from 'lucide-react'
 import {useCallback, useEffect, useMemo, useState, type ComponentType, type SVGProps} from 'react'
 import {

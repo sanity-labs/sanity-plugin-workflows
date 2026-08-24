@@ -1,4 +1,5 @@
-import {LayerProvider, studioTheme, ThemeProvider, ToastProvider} from '@sanity/ui'
+import {LayerProvider, studioTheme, ThemeProvider} from '@sanity/ui'
+import {ToastProvider} from '@sanity/ui/toast'
 import {
   render as rtlRender,
   type RenderOptions,
@@ -6,7 +7,7 @@ import {
   type Queries,
   queries,
 } from '@testing-library/react'
-import type {ComponentType, ReactElement, ReactNode} from 'react'
+import {StrictMode, type ComponentType, type ReactElement, type ReactNode} from 'react'
 if (typeof window !== 'undefined' && !window.matchMedia) {
   const noop = () => {}
 
@@ -27,11 +28,13 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
 
 export function TestProviders({children}: {children: ReactNode}) {
   return (
-    <ThemeProvider theme={studioTheme}>
-      <ToastProvider>
-        <LayerProvider>{children}</LayerProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <StrictMode>
+      <ThemeProvider theme={studioTheme}>
+        <ToastProvider>
+          <LayerProvider>{children}</LayerProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </StrictMode>
   )
 }
 

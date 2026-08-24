@@ -9,12 +9,13 @@ const mockListen = vi.fn()
 const mockUnsubscribe = vi.fn()
 const mockUseWorkflowProjectUsers = vi.fn()
 
-vi.mock('sanity', () => ({
-  useClient: vi.fn(() => ({
-    fetch: mockFetch,
-    listen: mockListen,
-  })),
-}))
+vi.mock('sanity', () => {
+  const client = {
+    fetch: (...args: unknown[]) => mockFetch(...args),
+    listen: (...args: unknown[]) => mockListen(...args),
+  }
+  return {useClient: vi.fn(() => client)}
+})
 
 vi.mock('@sanity-labs/workflow-kit/studio', () => ({
   useWorkflowProjectUsers: (client: unknown) => mockUseWorkflowProjectUsers(client),
@@ -60,7 +61,8 @@ describe('WorkflowAuditInspector', () => {
       expect(screen.getByText('Audit Trail')).toBeDefined()
       expect(screen.getByText('Moved to Draft')).toBeDefined()
       expect(screen.getByText('2026-03-20 10:00:00 UTC')).toBeDefined()
-      expect(screen.getByTitle('Jane Editor')).toBeDefined()
+      expect(screen.getByLabelText('Jane Editor')).toBeDefined()
+      expect(document.querySelector('[data-ui="Tooltip__card"]')).not.toBeNull()
     })
 
     expect(screen.queryByText('Missing sources')).toBeNull()

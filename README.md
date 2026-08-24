@@ -49,10 +49,71 @@ About 5 minutes from `pnpm install` to your first transition.
 ### 1. Install
 
 ```sh
-pnpm add @sanity-labs/sanity-plugin-workflows @sanity-labs/workflow-kit
+pnpm add @sanity-labs/sanity-plugin-workflows
 ```
 
-> `@sanity-labs/workflow-kit` is a peer of this package — you need it in your project even if you never import from it directly.
+The plugin installs `@sanity-labs/workflow-kit` transitively. Add workflow-kit directly
+only when your Studio or frontend imports its public entrypoints.
+
+The current plugin release supports Sanity Studio 6.9.2 and later 6.x releases,
+React 19.2, `@sanity/ui` 4.0.1 or later, and `styled-components` 6. Use Node.js
+22.12 or newer.
+
+For Sanity Studio 5, install the previous UI 3 release line:
+
+```sh
+pnpm add @sanity-labs/sanity-plugin-workflows@^0.7.1 @sanity-labs/workflow-kit@^0.5.1
+```
+
+Sanity 6.0–6.9.1 falls between those supported release lines. The 0.7.1 plugin
+may run there, but its published peers reject Sanity 6 and its Lucide picker
+declares Sanity 3/UI 2 peers. Upgrade Studio to 6.9.2 or later rather than
+depending on that combination.
+
+#### Temporary override for early Sanity 6
+
+If a Studio upgrade is temporarily blocked, you can test the old UI 3 plugin
+line by pinning every relevant version and correcting its peer declarations
+locally. For pnpm, the following `package.json` configuration shows the shape:
+
+```json
+{
+  "dependencies": {
+    "@sanity-labs/sanity-plugin-workflows": "0.7.1",
+    "@sanity-labs/workflow-kit": "0.5.1",
+    "@sanity/ui": "^3.2.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@sanity/ui": "^3.2.0"
+    },
+    "packageExtensions": {
+      "@sanity-labs/sanity-plugin-workflows@0.7.1": {
+        "peerDependencies": {
+          "sanity": ">=5 <6.9.2"
+        }
+      },
+      "@sanity-labs/workflow-kit@0.5.1": {
+        "peerDependencies": {
+          "sanity": ">=5 <6.9.2"
+        }
+      },
+      "sanity-plugin-lucide-icon-picker@1.0.3": {
+        "peerDependencies": {
+          "@sanity/ui": "^3.2.0",
+          "sanity": ">=5 <6.9.2"
+        }
+      }
+    }
+  }
+}
+```
+
+This is an unsupported migration escape hatch, not a compatibility guarantee.
+An override suppresses dependency-contract failures; it does not prove that the
+packages work together. A global UI override can also affect unrelated plugins.
+Keep this setup on UI 3, and test schema loading, icon search and selection,
+transitions, off-ramps, tooltips, and toast messages before deploying it.
 
 ### 2. Initialise the comments / tasks addon dataset
 
@@ -530,8 +591,15 @@ pnpm build        # pkg-utils build with strict checks
 pnpm typecheck    # tsgo --noEmit
 pnpm lint         # oxlint
 pnpm test         # vitest run
+pnpm smoke:compat # build packed workflow-kit and plugin artifacts in a clean Studio
 pnpm link-watch   # plugin-kit link-watch (develop against a local Studio)
 ```
+
+For compatibility releases, publish the workflow-kit changeset first. Verify its
+packed artifact in Sanetti, then publish the plugin changeset and repeat the
+Sanetti build with the released versions. The CI compatibility matrix covers
+the Studio 6.9.2/UI 4.0.1 minimum and the current Studio 6/Vite 8 release without
+Sanetti dependency overrides.
 
 ## License
 
