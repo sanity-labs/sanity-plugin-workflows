@@ -38,11 +38,11 @@ jobs:
           - name: 5
             node: 22.12.0
             sanity: 5.31.1
-            sanityUi: 3.2.0
+            sanityUi: ^4.0.0
           - name: 6.2
             node: 22.12.0
             sanity: 6.2.0
-            sanityUi: 3.2.0
+            sanityUi: ^4.0.0
           - name: current-6
             node: 24.14.0
             sanity: ^6.0.0

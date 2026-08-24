@@ -55,7 +55,7 @@ pnpm add @sanity-labs/sanity-plugin-workflows
 The plugin installs `@sanity-labs/workflow-kit` transitively. Add workflow-kit directly
 only when your Studio or frontend imports its public entrypoints.
 
-The plugin supports Sanity Studio 5 and 6, React 19.2, `@sanity/ui` 3 and 4, and
+The plugin supports Sanity Studio 5 and 6, React 19.2, `@sanity/ui` 4, and
 `styled-components` 6. Use Node.js 20.19 or newer with Studio 5. Studio 6 itself
 requires Node.js 22.12 or newer.
 

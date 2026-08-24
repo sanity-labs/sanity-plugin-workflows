@@ -1,4 +1,5 @@
 import {LayerProvider, studioTheme, ThemeProvider} from '@sanity/ui'
+import {ToastProvider} from '@sanity/ui/toast'
 import {
   render as rtlRender,
   type RenderOptions,
@@ -29,7 +30,9 @@ export function TestProviders({children}: {children: ReactNode}) {
   return (
     <StrictMode>
       <ThemeProvider theme={studioTheme}>
-        <LayerProvider>{children}</LayerProvider>
+        <ToastProvider>
+          <LayerProvider>{children}</LayerProvider>
+        </ToastProvider>
       </ThemeProvider>
     </StrictMode>
   )
