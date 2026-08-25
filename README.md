@@ -1,5 +1,11 @@
 # @sanity-labs/sanity-plugin-workflows
 
+> [!IMPORTANT]
+> This plugin was created before Sanity's official [Editorial Workflows](https://www.sanity.io/docs/editorial-workflows) feature was available in public beta.
+> I _strongly_ recommend using that rather than this plug-in as it will be officially supported by the Sanity team.
+> Once Editorial Workflows goes GA, this plugin will go into maintenance mode.
+> — Sam
+
 Editor-configurable document workflows for Sanity Studio.
 
 Content authors define the workflow — stages, off-ramps, roles, task templates, completion gating, publish gating — in a `workflow.definition` document. The plugin then takes care of the Studio wiring: it injects a `status` field, an `assignments` array, and an audit trail onto every workflow-aware document, turns the `Publish` action into a **Move to _next stage_** action, and surfaces an **Audit Trail** inspector.
@@ -17,16 +23,16 @@ The simplest working setup is one line of config (`plugins: [workflowsPlugin()]`
 
 ## Concepts
 
-| Term                 | What it is                                                                                                                                                                                                                                                                                   |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `workflow.definition` | A Studio document that describes _one_ workflow. Targets a single `documentType` and owns that type's stages, off-ramps, and roles.                                                                                                                                                          |
-| Stage                | A step on the happy path (e.g. `draft` → `in_review` → `approved`). Each stage has a label, icon, color, and optional tasks and gating rules.                                                                                                                                                |
-| Off-ramp             | A terminal/abandoned state that isn't part of the forward path (e.g. `spiked`, `archived`). Can unpublish the document on entry.                                                                                                                                                             |
-| Role                 | A workflow role (e.g. Reporter, Section Editor) authored inside the `workflow.definition` document. Each role maps to one or more Sanity project roles via `workflow.role.projectRoles[]`; the plugin uses that mapping to resolve which Sanity users count as which workflow role at runtime. |
-| Task template        | A task auto-created for a stage (on stage entry, or when assignments become ready for the current stage). Role-bound templates wait until `assignments[]` resolve an assignee — they are not created as floating unassigned tasks. Tasks live in the `-comments` addon dataset.              |
-| Completion gating    | If on, a stage can't be left until its required tasks are closed. Roles listed in `gatingOverrideRoles` can override.                                                                                                                                                                        |
-| Publish gating       | Documents can only be published when the current stage has `enablePublishing: true`. Enforced by a custom validator.                                                                                                                                                                         |
-| Audit trail          | Every transition appends a `workflow.setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                                                                                                                                                                       |
+| Term                  | What it is                                                                                                                                                                                                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflow.definition` | A Studio document that describes _one_ workflow. Targets a single `documentType` and owns that type's stages, off-ramps, and roles.                                                                                                                                                            |
+| Stage                 | A step on the happy path (e.g. `draft` → `in_review` → `approved`). Each stage has a label, icon, color, and optional tasks and gating rules.                                                                                                                                                  |
+| Off-ramp              | A terminal/abandoned state that isn't part of the forward path (e.g. `spiked`, `archived`). Can unpublish the document on entry.                                                                                                                                                               |
+| Role                  | A workflow role (e.g. Reporter, Section Editor) authored inside the `workflow.definition` document. Each role maps to one or more Sanity project roles via `workflow.role.projectRoles[]`; the plugin uses that mapping to resolve which Sanity users count as which workflow role at runtime. |
+| Task template         | A task auto-created for a stage (on stage entry, or when assignments become ready for the current stage). Role-bound templates wait until `assignments[]` resolve an assignee — they are not created as floating unassigned tasks. Tasks live in the `-comments` addon dataset.                |
+| Completion gating     | If on, a stage can't be left until its required tasks are closed. Roles listed in `gatingOverrideRoles` can override.                                                                                                                                                                          |
+| Publish gating        | Documents can only be published when the current stage has `enablePublishing: true`. Enforced by a custom validator.                                                                                                                                                                           |
+| Audit trail           | Every transition appends a `workflow.setStatus` entry to the document's `statuses` array. Rendered in a per-document inspector.                                                                                                                                                                |
 
 ### How the pieces fit
 
@@ -205,40 +211,40 @@ New workflow audit entries are written as `workflow.setStatus` objects with `com
 Copy or run the example migration in [`migrations/namespace-workflow-schema-types`](migrations/namespace-workflow-schema-types):
 
 ```ts
-import {at, defineMigration, set} from 'sanity/migrate'
+import { at, defineMigration, set } from "sanity/migrate";
 
 const OBJECT_TYPE_RENAMES = {
-  assignment: 'workflow.assignment',
-  setStatus: 'workflow.setStatus',
-  taskTemplate: 'workflow.taskTemplate',
-  workflowOffRamp: 'workflow.offRamp',
-  workflowRole: 'workflow.role',
-  workflowStage: 'workflow.stage',
-}
+  assignment: "workflow.assignment",
+  setStatus: "workflow.setStatus",
+  taskTemplate: "workflow.taskTemplate",
+  workflowOffRamp: "workflow.offRamp",
+  workflowRole: "workflow.role",
+  workflowStage: "workflow.stage",
+};
 
 export default defineMigration({
   migrate: {
     document(doc) {
-      if (doc._type === 'workflowDefinition') {
-        return at('_type', set('workflow.definition'))
+      if (doc._type === "workflowDefinition") {
+        return at("_type", set("workflow.definition"));
       }
     },
     object(obj, path) {
-      const lastSegment = path[path.length - 1]
+      const lastSegment = path[path.length - 1];
       const nextType =
-        obj._type === 'user' && lastSegment === 'completedBy'
-          ? 'workflow.user'
-          : typeof obj._type === 'string'
+        obj._type === "user" && lastSegment === "completedBy"
+          ? "workflow.user"
+          : typeof obj._type === "string"
             ? OBJECT_TYPE_RENAMES[obj._type]
-            : undefined
+            : undefined;
 
       if (nextType) {
-        return set({...obj, _type: nextType})
+        return set({ ...obj, _type: nextType });
       }
     },
   },
-  title: 'Namespace workflow schema types',
-})
+  title: "Namespace workflow schema types",
+});
 ```
 
 Run it once per affected dataset from your Studio directory:
