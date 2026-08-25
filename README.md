@@ -1,7 +1,7 @@
 # @sanity-labs/sanity-plugin-workflows
 
 > [!IMPORTANT]
-> This plugin was created before Sanity's official [Editorial Workflows](https://www.sanity.io/docs/editorial-workflows) feature was available in public beta.
+> This plugin was created before Sanity's official [Workflows](https://www.sanity.io/docs/editorial-workflows) feature was available in public beta.
 > I _strongly_ recommend using that rather than this plug-in as it will be officially supported by the Sanity team.
 > Once Editorial Workflows goes GA, this plugin will go into maintenance mode.
 > — Sam
